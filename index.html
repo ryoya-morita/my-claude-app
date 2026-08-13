@@ -418,7 +418,7 @@ function pendingBy(name,ym){return db.applications.filter(a=>a.person===name&&a.
 function deptMonthUsed(dep,ym){return db.reports.filter(r=>r.dept===dep&&inMonth(r,ym)).reduce((s,r)=>s+shitaBudget(r),0);}
 function allMonthUsed(ym){return db.reports.filter(r=>inMonth(r,ym)).reduce((s,r)=>s+shitaBudget(r),0);}
 function allMonthSareta(ym){return db.reports.filter(r=>inMonth(r,ym)).reduce((s,r)=>s+saretaSum(r),0);}
-function urlLine(){return "\n▼申請システム：\n"+(db.systemUrl||"https://my-claude-8wjrog0e4-ryoya2.vercel.app/");}
+function urlLine(){return "\n▼申請システム：\n"+(db.systemUrl||"https://my-claude-app-orcin.vercel.app/");}
 
 function repChecks(r){
   const app=r.appId?db.applications.find(a=>a.id===r.appId):null;
@@ -806,7 +806,7 @@ document.querySelectorAll(".scrim").forEach(s=>s.onclick=e=>{if(e.target===s)clo
 let toastT;function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2600);}
 $("prevM").onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()-1,1);render();};
 $("nextM").onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);render();};
-$("setUrl").onclick=()=>{const v=prompt("申請システムのURL（LINE文に添付）",db.systemUrl||"https://my-claude-8wjrog0e4-ryoya2.vercel.app/");if(v!==null){db.systemUrl=v.trim();storeSet();toast("URLを保存しました");}};
+$("setUrl").onclick=()=>{const v=prompt("申請システムのURL（LINE文に添付）",db.systemUrl||"https://my-claude-app-orcin.vercel.app/");if(v!==null){db.systemUrl=v.trim();storeSet();toast("URLを保存しました");}};
 
 function allRows(){const rows=[["日付","曜日","報告者","計上部署","区分","カテゴリ","方向","金額(円)","参加人数","1人あたり","予算区分","申請予算","予算超過理由","事前申請","承認者","役員確認者","事後理由","店名/相手","全体メモ","関係値の変化"]];
   db.reports.slice().sort((a,b)=>a.date<b.date?-1:1).forEach(r=>{const app=r.appId?db.applications.find(a=>a.id===r.appId):null;
