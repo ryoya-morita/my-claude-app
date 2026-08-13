@@ -43,7 +43,17 @@
   .monthbar button:hover{color:var(--ink);}
   .monthbar .m{font-size:14px;font-weight:600;min-width:104px;text-align:center;}
   h2.sec{font-size:12px;letter-spacing:.08em;color:var(--muted);margin:22px 2px 11px;font-weight:700;display:flex;align-items:center;gap:8px;}
-  h2.sec .cnt{background:var(--line);color:var(--ink2);border-radius:20px;padding:1px 8px;font-size:11px;}
+  /* flow pipeline */
+  .flow{display:flex;align-items:center;gap:6px;overflow-x:auto;padding:2px 2px 6px;-webkit-overflow-scrolling:touch;}
+  .fstage{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px 10px 11px;min-width:92px;text-align:center;cursor:pointer;box-shadow:var(--shadow-sm);position:relative;flex:none;transition:.14s;}
+  .fstage:hover{border-color:var(--line2);transform:translateY(-1px);box-shadow:var(--shadow);}
+  .ficon{font-size:22px;position:relative;display:inline-block;line-height:1;}
+  .fbadge{position:absolute;top:-9px;right:-13px;background:var(--red);color:#fff;font-size:11px;font-weight:700;min-width:20px;height:20px;border-radius:11px;display:flex;align-items:center;justify-content:center;padding:0 5px;box-shadow:0 1px 4px rgba(178,58,46,.5);border:2px solid #fff;}
+  .flab{font-size:11px;font-weight:700;margin-top:7px;color:var(--ink2);white-space:nowrap;}
+  .fcount{font-size:10.5px;color:var(--muted);margin-top:2px;font-weight:700;}
+  .fcount.done{background:var(--green-soft);color:var(--green);border-radius:20px;padding:1px 8px;display:inline-block;}
+  .farrow{color:var(--line2);font-size:15px;flex:none;font-weight:700;}
+  /* summary */
   .summary{background:linear-gradient(120deg,#171C21,#20272E);color:#fff;border-radius:16px;padding:16px 18px;box-shadow:var(--shadow-sm);}
   .sum-main{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
   .sum-main .lab{font-size:12px;color:#B9C1C9;}
@@ -72,16 +82,6 @@
   .pc-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));}
   .pc-bar i.over{background:var(--red);}
   .pc-sub{font-size:10.5px;color:var(--muted);margin-top:6px;}
-  .row{display:flex;gap:11px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:11px 13px;margin-bottom:8px;box-shadow:var(--shadow-sm);cursor:pointer;transition:.14s;}
-  .row:hover{border-color:var(--line2);transform:translateY(-1px);box-shadow:var(--shadow);}
-  .row .mid{flex:1;min-width:0;}
-  .row .t{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .row .s{font-size:11px;color:var(--muted);margin-top:1px;}
-  .row .amt{font-size:14.5px;font-weight:700;text-align:right;white-space:nowrap;}
-  .row .amt small{display:block;font-size:10px;color:var(--indigo);font-weight:500;}
-  .row .chev{color:var(--muted);font-size:16px;flex:none;}
-  .row .rc,.row .warn{font-size:14px;flex:none;}
-  .row .warn{color:var(--amber);}
   .pill{font-size:10px;border-radius:20px;padding:2px 9px;font-weight:700;white-space:nowrap;flex:none;}
   .pill.exec{background:var(--brass-soft);color:var(--brass);}
   .pill.build{background:var(--accent-soft);color:var(--accent2);}
@@ -132,7 +132,7 @@
   .drop:hover{border-color:var(--accent);color:var(--accent);}
   .rcpt-preview{display:flex;gap:10px;align-items:center;margin-top:8px;}
   .rcpt-preview img{width:54px;height:54px;object-fit:cover;border-radius:9px;border:1px solid var(--line2);}
-  .ocr-status{font-size:12px;color:var(--blue);display:flex;align-items:center;gap:6px;margin-top:6px;}
+  .btn-rcpt-del{border:none;background:var(--red-soft);color:var(--red);padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;}
   .preview{background:#F5F7F9;border:1px solid var(--line);border-radius:13px;padding:13px 15px;font-size:12.5px;white-space:pre-wrap;line-height:1.75;margin:6px 0 12px;}
   .preview.green{background:var(--green-soft);border-color:#CFE6DB;}
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:26px;font-size:13px;box-shadow:var(--shadow);z-index:120;opacity:0;transition:.25s;}
@@ -190,17 +190,22 @@
 
   <div class="monthbar"><button id="prevM">‹</button><span class="m" id="mLabel">2026年8月</span><button id="nextM">›</button></div>
 
+  <h2 class="sec">申請フロー（全体・タップで一覧）</h2>
+  <div class="flow" id="flow">
+    <div class="fstage" data-stage="pending"><div class="ficon">🕓<span class="fbadge hide" id="fb-pending">0</span></div><div class="flab">申請中</div><div class="fcount">承認待ち</div></div>
+    <div class="farrow">›</div>
+    <div class="fstage" data-stage="approved"><div class="ficon">✅<span class="fbadge hide" id="fb-approved">0</span></div><div class="flab">承認済み</div><div class="fcount">報告待ち</div></div>
+    <div class="farrow">›</div>
+    <div class="fstage" data-stage="reported"><div class="ficon">📗</div><div class="flab">報告済み</div><div class="fcount done" id="fc-reported">0件</div></div>
+    <div class="farrow">／</div>
+    <div class="fstage" data-stage="rejected"><div class="ficon">↩️<span class="fbadge hide" id="fb-rejected">0</span></div><div class="flab">差し戻し</div><div class="fcount">要修正</div></div>
+  </div>
+
   <h2 class="sec">今月のサマリー</h2>
   <div class="summary" id="summary"></div>
 
   <h2 class="sec">対象者の使用状況（タップで個人詳細）</h2>
   <div id="people"></div>
-
-  <h2 class="sec">事前申請の一覧 <span class="cnt" id="appCnt">0</span></h2>
-  <div id="appList"></div>
-
-  <h2 class="sec">報告の履歴 <span class="cnt" id="repCnt">0</span></h2>
-  <div id="repList"></div>
 
   <div class="toolbar">
     <button class="primary" id="exportXlsx">📊 Excel書き出し</button>
@@ -280,6 +285,11 @@
   <h3>報告の詳細</h3>
   <div class="lead" id="repDetailSub"></div>
   <div id="repDetailBody"></div>
+  <div class="notice">内容の確認・チェックは宮崎嘉人・歌田修造が行ってください。</div>
+  <div class="modalbtns" id="repCheckBtns">
+    <button class="btn-save" data-checkrep="宮崎嘉人">宮崎嘉人が確認</button>
+    <button class="btn-save" data-checkrep="歌田修造">歌田修造が確認</button>
+  </div>
   <div class="modalbtns"><button class="btn-cancel" data-close>閉じる</button></div>
 </div></div>
 
@@ -310,11 +320,18 @@
   <div class="modalbtns"><button class="btn-cancel" data-close>キャンセル</button><button class="btn-save" id="r_save">報告を登録</button></div>
 </div></div>
 
+<!-- フロー一覧 -->
+<div class="scrim" id="flowScrim"><div class="modal">
+  <h3 id="flowTitle">一覧</h3>
+  <div class="lead" id="flowLead"></div>
+  <div id="flowBody"></div>
+  <div class="modalbtns"><button class="btn-cancel" data-close>閉じる</button></div>
+</div></div>
+
 <div class="lightbox" id="lightbox"><img id="lightboxImg" alt="領収書"></div>
 <div class="toast" id="toast"></div>
 
 <script>
-// ★ Supabase設定（接続情報）
 const SUPABASE_URL = "https://ivmwzvokrhhuyfkgvit.supabase.co";
 const SUPABASE_KEY = "ここにステップ1でコピーしたキーを貼り付けます";
 const spClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
@@ -331,7 +348,7 @@ const KUBUN=[
 let db={applications:[],reports:[],systemUrl:""};
 let cur=new Date();
 let rform={items:[]};
-let decisionId=null,decisionMode=null,editingAppId=null,currentAppBudget=null;
+let decisionId=null,decisionMode=null,editingAppId=null,currentAppBudget=null,currentRepId=null;
 
 const $=id=>document.getElementById(id);
 const yen=n=>"¥"+Math.round(n||0).toLocaleString("ja-JP");
@@ -415,9 +432,58 @@ function repChecks(r){
 }
 function repHasIssue(r){return repChecks(r).some(c=>c[0]==="warn");}
 
+function renderFlow(){
+  const cPend=db.applications.filter(a=>a.status==="承認待ち").length;
+  const cAppr=db.applications.filter(a=>a.status==="承認済").length;
+  const cRep=db.reports.length;
+  const cRej=db.applications.filter(a=>a.status==="却下").length;
+  setBadge("fb-pending",cPend);setBadge("fb-approved",cAppr);setBadge("fb-rejected",cRej);
+  $("fc-reported").textContent=cRep+"件";
+}
+function setBadge(id,n){const el=$(id);if(n>0){el.textContent=n;el.classList.remove("hide");}else{el.classList.add("hide");}}
+document.querySelectorAll(".fstage").forEach(el=>el.onclick=()=>openFlow(el.dataset.stage));
+
+function openFlow(stage){
+  let title,lead,items=[],type="app";
+  if(stage==="pending"){title="申請中（承認待ち）";lead="承認者（宮崎嘉人・歌田修造）の承認待ちです。タップで承認/却下できます。";items=db.applications.filter(a=>a.status==="承認待ち");}
+  else if(stage==="approved"){title="承認済み（報告待ち）";lead="承認済みの申請です。接待完了後に「この申請で報告する」をタップしてください。";items=db.applications.filter(a=>a.status==="承認済");}
+  else if(stage==="rejected"){title="差し戻し（却下）";lead="却下された申請です。タップで編集・再申請、または削除できます。";items=db.applications.filter(a=>a.status==="却下");}
+  else{title="報告済み";lead="実績報告が完了した記録です。タップで内容確認および役員チェックが可能です。";items=db.reports.slice();type="rep";}
+  items.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  $("flowTitle").textContent=title;$("flowLead").textContent=lead;
+  const body=$("flowBody");
+  if(!items.length){body.innerHTML='<div class="empty">対象はありません。</div>';$("flowScrim").classList.add("show");return;}
+  body.innerHTML="";
+  items.forEach(x=>{
+    const div=document.createElement("div");div.className="mini";
+    if(type==="app"){
+      const sc={"承認待ち":"pending","承認済":"approved","却下":"rejected","報告済":"done"}[x.status];
+      const isApproved = x.status === "承認済";
+      div.innerHTML='<span class="st '+sc+'">'+x.status+'</span><span class="pill '+deptClass(x.dept)+'">'+esc(x.dept)+'</span><div class="mm"><div class="mt">'+esc(x.person+"｜"+x.partner)+'</div><div class="ms">'+fmtShort(x.date)+'</div></div><div class="ma num">'+yen(x.budget)+'</div>'+(isApproved?'<button class="btn-save" style="font-size:11px;padding:4px 8px;margin-left:6px;flex:none;">報告する</button>':'');
+      div.onclick=(e)=>{
+        if(isApproved && e.target.tagName==='BUTTON'){
+          closeAll();
+          openReportWithApp(x);
+        } else {
+          closeAll();
+          openAppDetail(x.id);
+        }
+      };
+    }else{
+      const app=x.appId?db.applications.find(a=>a.id===x.appId):null;const issue=repHasIssue(x);
+      const chkText=x.checkedBy?' ・ 済:'+x.checkedBy:'';
+      div.innerHTML='<span class="st '+(x.appId?"done":"noapp")+'">'+(x.appId?"報告":"事後")+'</span><span class="pill '+deptClass(x.dept)+'">'+esc(x.dept||"-")+'</span><div class="mm"><div class="mt">'+esc(x.person+"｜"+(app?app.partner:(x.items[0]&&x.items[0].vendor)||"接待"))+'</div><div class="ms">'+fmtShort(x.date)+(issue?' ・ ⚠要確認':'')+esc(chkText)+'</div></div><div class="ma num">'+yen(shitaBudget(x))+'</div>';
+      div.onclick=()=>{closeAll();openRepDetail(x);};
+    }
+    body.appendChild(div);
+  });
+  $("flowScrim").classList.add("show");
+}
+
 function render(){
   const ym=mkey(cur),y=cur.getFullYear();
   $("mLabel").textContent=y+"年"+(cur.getMonth()+1)+"月";
+  renderFlow();
   const mNum=cur.getMonth()+1;
   const total=allMonthUsed(ym),sar=allMonthSareta(ym);
   let sd="";DEPTS.forEach(d=>{sd+='<div class="sd"><div class="k"><span class="dot '+deptClass(d)+'"></span>'+d+'</div><div class="v num">'+yen(deptMonthUsed(d,ym))+'</div></div>';});
@@ -435,35 +501,6 @@ function render(){
     others.forEach(n=>html+=personCard(n,(db.reports.concat(db.applications).find(x=>x.person===n)||{}).dept||"その他"));
     html+='</div></div>';wrap.insertAdjacentHTML("beforeend",html);}
   wrap.querySelectorAll("[data-person]").forEach(el=>el.onclick=()=>openPerson(el.dataset.person));
-
-  const apps=db.applications.filter(a=>inMonth(a,ym)).sort((a,b)=>b.createdAt-a.createdAt);
-  $("appCnt").textContent=apps.length;
-  const al=$("appList");
-  if(!apps.length){al.innerHTML='<div class="empty">この月の事前申請はありません。</div>';}
-  else{al.innerHTML="";apps.forEach(a=>{
-    const sc={"承認待ち":"pending","承認済":"approved","却下":"rejected","報告済":"done"}[a.status];
-    const who=(a.status==="承認済"||a.status==="報告済")&&a.approvedBy?' ・ 承認：'+a.approvedBy:(a.status==="却下"&&a.decidedBy?' ・ 却下：'+a.decidedBy:'');
-    const div=document.createElement("div");div.className="row";
-    div.innerHTML='<span class="st '+sc+'">'+a.status+'</span><span class="pill '+deptClass(a.dept)+'">'+a.dept+'</span>'+
-      '<div class="mid"><div class="t">'+esc(a.person+"｜"+a.partner)+'</div><div class="s">'+fmtShort(a.date)+' ・ 予算<span class="num">'+yen(a.budget)+'</span>'+esc(who)+'</div></div><span class="chev">›</span>';
-    div.onclick=()=>openAppDetail(a.id);al.appendChild(div);
-  });}
-
-  const reps=db.reports.filter(r=>inMonth(r,ym)).sort((a,b)=>b.createdAt-a.createdAt);
-  $("repCnt").textContent=reps.length;
-  const rl=$("repList");
-  if(!reps.length){rl.innerHTML='<div class="empty">この月の報告はありません。</div>';}
-  else{rl.innerHTML="";reps.forEach(r=>{
-    const noapp=!r.appId;const sh=shitaBudget(r),sa=saretaSum(r);const app=r.appId?db.applications.find(a=>a.id===r.appId):null;
-    const title=r.person+"｜"+(app?app.partner:(r.items&&r.items[0]&&r.items[0].vendor)||"接待");
-    const parts=[fmtShort(r.date),(r.items||[]).length+"明細"];if(sa>0)parts.push("被接待"+yen(sa));
-    const hasR=(r.items||[]).some(i=>i.receipt);const issue=repHasIssue(r);
-    const div=document.createElement("div");div.className="row";
-    div.innerHTML='<span class="st '+(noapp?"noapp":"done")+'">'+(noapp?"事後":"報告済")+'</span><span class="pill '+deptClass(r.dept)+'">'+(r.dept||"-")+'</span>'+
-      '<div class="mid"><div class="t">'+esc(title)+'</div><div class="s">'+esc(parts.join(" ・ "))+'</div></div>'+
-      (issue?'<span class="warn" title="要確認">⚠</span>':'')+(hasR?'<span class="rc">📎</span>':'')+'<div class="amt num">'+yen(sh)+(sa>0?'<small>被 '+yen(sa)+'</small>':'')+'</div>';
-    div.onclick=()=>openRepDetail(r);rl.appendChild(div);
-  });}
 }
 
 function personCard(name,dept){
@@ -502,8 +539,9 @@ function openPerson(name){
 }
 
 function openRepDetail(r){
+  currentRepId=r.id;
   const app=r.appId?db.applications.find(a=>a.id===r.appId):null;
-  $("repDetailSub").textContent=r.person+" ・ "+(r.dept||"-")+" ・ "+fmtFull(r.date);
+  $("repDetailSub").textContent=r.person+" ・ "+(r.dept||"-")+" ・ "+fmtFull(r.date)+(r.checkedBy?'（役員確認済: '+r.checkedBy+'）':'');
   let html='';
   html+='<div style="font-size:11px;color:var(--muted);font-weight:700;margin:0 2px 7px;">申請とのリンク／整合性チェック</div><div class="checks">';
   repChecks(r).forEach(c=>{html+='<div class="chkrow '+c[0]+'"><span class="ci">'+(c[0]==="ok"?"✓":"⚠")+'</span><span class="ck">'+esc(c[1])+'</span><span class="cv">'+esc(c[2].replace(/^✓ |^⚠ /,""))+'</span></div>';});
@@ -521,6 +559,20 @@ function openRepDetail(r){
   $("repDetailBody").querySelectorAll(".rz").forEach(img=>img.onclick=()=>openLightbox(img.src));
   $("repDetailScrim").classList.add("show");
 }
+
+document.querySelectorAll("[data-checkrep]").forEach(b=>{
+  b.onclick=()=>{
+    const r=db.reports.find(x=>x.id===currentRepId);
+    if(!r) return;
+    r.checkedBy=b.dataset.checkrep;
+    r.checkedAt=Date.now();
+    storeSet();
+    closeAll();
+    render();
+    toast("確認を記録しました（"+r.checkedBy+"）");
+  };
+});
+
 function openLightbox(src){$("lightboxImg").src=src;$("lightbox").classList.add("show");}
 $("lightbox").onclick=()=>$("lightbox").classList.remove("show");
 
@@ -531,12 +583,16 @@ function openAppDetail(id){
   if(a.approvedNote)t+="\n承認備考："+a.approvedNote;if(a.rejectNote)t+="\n却下備考："+a.rejectNote;
   $("appDetailText").textContent=t;
   const act=$("appDetailActions");act.innerHTML="";
+  if(a.status==="承認済"){
+    const rBtn=document.createElement("button");rBtn.className="btn-save";rBtn.textContent="この申請で報告する";
+    rBtn.onclick=()=>{closeAll();openReportWithApp(a);};act.appendChild(rBtn);
+  }
   if(a.status!=="報告済"){const e=document.createElement("button");e.className="btn-edit";e.textContent="編集";e.onclick=()=>openApplyEdit(a);act.appendChild(e);}
   if(a.status==="承認待ち"){
     const ok=document.createElement("button");ok.className="btn-ok";ok.textContent="承認する";ok.onclick=()=>{closeAll();openDecision(a.id,"approve");};act.appendChild(ok);
     const ng=document.createElement("button");ng.className="btn-ng";ng.textContent="却下する";ng.onclick=()=>{closeAll();openDecision(a.id,"reject");};act.appendChild(ng);
   }
-  if(a.status==="承認待ち"||a.status==="却下"){
+  if(a.status==="承認待ち"||a.status==="却下"||a.status==="承認済"){
     const del=document.createElement("button");del.className="btn-del";del.textContent="削除";
     del.onclick=()=>{if(del.dataset.armed){removeApp(a.id);}else{del.dataset.armed="1";del.textContent="もう一度タップで削除";setTimeout(()=>{del.dataset.armed="";del.textContent="削除";},3000);}};
     act.appendChild(del);
@@ -593,12 +649,41 @@ function showRejectNotify(app){const text="【接待 事前申請 却下のお�
 function copyText(t){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>toast("コピーしました"),()=>fallbackCopy(t));}else fallbackCopy(t);}
 function fallbackCopy(t){const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast("コピーしました");}catch(e){toast("コピーできませんでした");}document.body.removeChild(ta);}
 
+/* ============ 報告 ============ */
 $("openReport").onclick=()=>{fillPersonSelect($("r_person"));fillDeptSelect($("r_dept"));$("r_person").value=PEOPLE[0].n;$("r_dept").value=PEOPLE[0].d;$("r_otherWrap").classList.add("hide");resetReport();refreshAppSel();$("reportScrim").classList.add("show");};
 $("r_person").onchange=()=>{const v=$("r_person").value;const other=v==="__other__";$("r_otherWrap").classList.toggle("hide",!other);if(!other){const p=PEOPLE.find(x=>x.n===v);if(p)$("r_dept").value=p.d;}refreshAppSel();};
+$("r_other").oninput=()=>{refreshAppSel();};
+
+function openReportWithApp(app){
+  fillPersonSelect($("r_person"));fillDeptSelect($("r_dept"));
+  if(PEOPLE.find(x=>x.n===app.person)){
+    $("r_person").value=app.person;
+    $("r_otherWrap").classList.add("hide");
+  } else {
+    $("r_person").value="__other__";
+    $("r_otherWrap").classList.remove("hide");
+    $("r_other").value=app.person;
+  }
+  resetReport();
+  refreshAppSel();
+  $("r_appsel").value=app.id;
+  updateAppInfo();
+  recalc();
+  $("reportScrim").classList.add("show");
+}
+
 function refreshAppSel(){
-  const p=$("r_person").value;const sel=$("r_appsel");sel.innerHTML='<option value="">― 選択 ―</option>';
-  db.applications.filter(a=>a.person===p&&a.status==="承認済").forEach(a=>{const o=document.createElement("option");o.value=a.id;o.textContent=fmtShort(a.date)+" "+a.partner+"（予算"+yen(a.budget)+"）";sel.appendChild(o);});
-  const none=document.createElement("option");none.value="__none__";none.textContent="★ 事前申請なし（理由を入力）";sel.appendChild(none);updateAppInfo();
+  const pVal=$("r_person").value;
+  const targetPerson = pVal === "__other__" ? $("r_other").value.trim() : pVal;
+  const sel=$("r_appsel");
+  const curVal=sel.value;
+  sel.innerHTML='<option value="">― 選択 ―</option>';
+  db.applications.filter(a=>a.person===targetPerson&&a.status==="承認済").forEach(a=>{
+    const o=document.createElement("option");o.value=a.id;o.textContent=fmtShort(a.date)+" "+a.partner+"（予算"+yen(a.budget)+"）";sel.appendChild(o);
+  });
+  const none=document.createElement("option");none.value="__none__";none.textContent="★ 事前申請なし（理由を入力）";sel.appendChild(none);
+  if(curVal) sel.value=curVal;
+  updateAppInfo();
 }
 $("r_appsel").onchange=()=>{updateAppInfo();recalc();};
 function updateAppInfo(){
@@ -622,7 +707,7 @@ function addItem(){
     '<div class="li-rcpt"><label style="font-size:11px;color:var(--ink2);font-weight:600">領収書 <span style="color:var(--red)">*</span></label>'+
     '<div class="droprow"><div class="drop li-cam">📷 撮影</div><div class="drop li-lib">🖼 写真から選択</div></div>'+
     '<input type="file" class="li-fcam hide" accept="image/*" capture="environment"><input type="file" class="li-flib hide" accept="image/*">'+
-    '<div class="li-ocr"></div><div class="rcpt-preview hide li-prev"><img class="li-thumb rz"><span class="li-vendor s"></span></div></div>';
+    '<div class="li-ocr"></div><div class="rcpt-preview hide li-prev"><img class="li-thumb rz"><button class="btn-rcpt-del li-rcpt-del">🗑 削除</button></div></div>';
   const ksel=card.querySelector(".li-kubun");KUBUN.forEach(k=>{const o=document.createElement("option");o.value=k.v;o.textContent=k.t;ksel.appendChild(o);});
   const dsegs=card.querySelectorAll(".li-dir .seg");
   const amt=card.querySelector(".li-amt"),ppl=card.querySelector(".li-ppl"),ex=card.querySelector(".li-ex"),taxEl=card.querySelector(".li-tax");
@@ -637,6 +722,12 @@ function addItem(){
   const fcam=card.querySelector(".li-fcam"),flib=card.querySelector(".li-flib");
   card.querySelector(".li-cam").onclick=()=>fcam.click();card.querySelector(".li-lib").onclick=()=>flib.click();
   const thumbEl=card.querySelector(".li-thumb");thumbEl.onclick=()=>{if(item.receipt)openLightbox(item.receipt);};
+  card.querySelector(".li-rcpt-del").onclick=()=>{
+    item.receipt=null;
+    card.querySelector(".li-prev").classList.add("hide");
+    thumbEl.src="";
+    card.querySelector(".li-ocr").innerHTML="";
+  };
   async function onFile(e){
     const f=e.target.files[0];if(!f)return;
     const thumb=await resizeImg(f,440,.55);
@@ -686,9 +777,9 @@ $("prevM").onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()-1,1);rende
 $("nextM").onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);render();};
 $("setUrl").onclick=()=>{const v=prompt("申請システムのURL（LINE文に添付。ホスティング後に設定）",db.systemUrl||"");if(v!==null){db.systemUrl=v.trim();storeSet();toast("URLを保存しました");}};
 
-function allRows(){const rows=[["日付","曜日","報告者","計上部署","区分","カテゴリ","方向","金額(円)","参加人数","1人あたり","予算区分","申請予算","予算超過理由","事前申請","承認者","事後理由","店名/相手","全体メモ","関係値の変化"]];
+function allRows(){const rows=[["日付","曜日","報告者","計上部署","区分","カテゴリ","方向","金額(円)","参加人数","1人あたり","予算区分","申請予算","予算超過理由","事前申請","承認者","役員確認者","事後理由","店名/相手","全体メモ","関係値の変化"]];
   db.reports.slice().sort((a,b)=>a.date<b.date?-1:1).forEach(r=>{const app=r.appId?db.applications.find(a=>a.id===r.appId):null;
-    (r.items||[]).forEach(i=>rows.push([r.date,dow(r.date),r.person,r.dept||"",i.label||i.cat,i.cat,"接待"+i.dir,i.amt,i.ppl||"",i.ppl?Math.round(i.amt/i.ppl):"",i.dir==="された"?"（被接待）":(i.exempt?"対象外":"対象"),r.appBudget!=null?r.appBudget:"",r.overReason||"",r.appId?"あり":"なし",app&&app.approvedBy?app.approvedBy:"",r.reason||"",i.vendor||(app?app.partner:"")||"",r.detail||"",r.rel||""]));});
+    (r.items||[]).forEach(i=>rows.push([r.date,dow(r.date),r.person,r.dept||"",i.label||i.cat,i.cat,"接待"+i.dir,i.amt,i.ppl||"",i.ppl?Math.round(i.amt/i.ppl):"",i.dir==="された"?"（被接待）":(i.exempt?"対象外":"対象"),r.appBudget!=null?r.appBudget:"",r.overReason||"",r.appId?"あり":"なし",app&&app.approvedBy?app.approvedBy:"",r.checkedBy||"",r.reason||"",i.vendor||(app?app.partner:"")||"",r.detail||"",r.rel||""]));});
   return rows;}
 $("exportXlsx").onclick=()=>{if(!db.reports.length){toast("書き出す報告がありません");return;}const ws=XLSX.utils.aoa_to_sheet(allRows());const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"接待交際費履歴");XLSX.writeFile(wb,"接待交際費_全履歴.xlsx");};
 $("exportCsv").onclick=()=>{if(!db.reports.length){toast("書き出す報告がありません");return;}const csv="\uFEFF"+allRows().map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(",")).join("\r\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="接待交際費_全履歴.csv";a.click();};
