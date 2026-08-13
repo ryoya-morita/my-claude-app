@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>接待交際費 申請・報告システム｜株式会社想歩</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
     --bg:#F4F5F7;--panel:#FFFFFF;--ink:#14181B;--ink2:#2E353D;--muted:#7C8590;
@@ -330,19 +330,10 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ↓ ★ ココをご自身のSupabaseキーに貼り替えてください ★ ↓
 const SUPABASE_URL = "https://ivmwzvokrhhuyfkgvit.supabase.co";
 const SUPABASE_KEY = "sb_publishable_WpiaNhKlbXPWHOhBcH6F7w_t83VDxoF";
-// ↑ ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★ ↑
 
-let spClient = null;
-
-function getSupabase() {
-  if (!spClient && window.supabase && window.supabase.createClient) {
-    spClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  }
-  return spClient;
-}
+const spClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const KEY="main_data";
 const PEOPLE=[{n:"宮崎嘉人",d:"役員"},{n:"歌田修造",d:"役員"},{n:"宮崎誠人",d:"建築事業部"},{n:"浅野司",d:"建築事業部"},{n:"森田諒也",d:"AI事業部"},{n:"金井翔",d:"AI事業部"}];
@@ -380,25 +371,19 @@ const inMonth=(x,ym)=>(x.date||"").slice(0,7)===ym;
 const inYear=(x,y)=>(x.date||"").slice(0,4)===String(y);
 
 async function storeGet(){
-  const client = getSupabase();
-  if(client){
-    try{
-      const { data, error } = await client.from('app_data').select('data').eq('id', KEY).single();
-      if(data && data.data) return data.data;
-    }catch(e){}
-  }
+  try{
+    const { data, error } = await spClient.from('app_data').select('data').eq('id', KEY).single();
+    if(data && data.data) return data.data;
+  }catch(e){}
   try{ const l = localStorage.getItem(KEY); if(l) return JSON.parse(l); }catch(e){}
   return null;
 }
 
 async function storeSet(){
   try{ localStorage.setItem(KEY, JSON.stringify(db)); }catch(e){}
-  const client = getSupabase();
-  if(client){
-    try{
-      await client.from('app_data').upsert({ id: KEY, data: db, updated_at: new Date().toISOString() });
-    }catch(e){}
-  }
+  try{
+    await spClient.from('app_data').upsert({ id: KEY, data: db, updated_at: new Date().toISOString() });
+  }catch(e){}
 }
 
 async function load(){
@@ -406,16 +391,13 @@ async function load(){
   if(d) db = Object.assign({applications:[],reports:[],systemUrl:""}, d);
   render();
   
-  const client = getSupabase();
-  if(client){
-    client.channel('realtime_app_data')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'app_data' }, payload => {
-        if(payload.new && payload.new.data){
-          db = Object.assign({applications:[],reports:[],systemUrl:""}, payload.new.data);
-          render();
-        }
-      }).subscribe();
-  }
+  spClient.channel('realtime_app_data')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'app_data' }, payload => {
+      if(payload.new && payload.new.data){
+        db = Object.assign({applications:[],reports:[],systemUrl:""}, payload.new.data);
+        render();
+      }
+    }).subscribe();
 }
 
 function reportsOf(name,ym){return db.reports.filter(r=>r.person===name&&inMonth(r,ym));}
@@ -687,7 +669,7 @@ function showApprovalNotify(app){const text="【接待 事前申請 承認のお
   showNotify("承認しました ✅（"+app.approvedBy+"）","申請者への「承認通知」です。コピーしてLINEで申請者へ。",text);}
 function showRejectNotify(app){const text="【接待 事前申請 却下のお知らせ】\n"+app.person+"さん\n\n下記の事前申請は "+app.decidedBy+" により却下されました。\n\n・接待予定日："+fmtFull(app.date)+"\n・相手："+app.partner+"\n・予算："+yen(app.budget)+(app.rejectNote?"\n\n【理由・備考】"+app.rejectNote:"")+urlLine();
   showNotify("却下しました（"+app.decidedBy+"）","申請者への「却下通知」です。コピーしてLINEで申請者へ。",text);}
-function copyText(t){if(navigator.clipboard&&navigator.clipboardwriteText){navigator.clipboard.writeText(t).then(()=>toast("コピーしました"),()=>fallbackCopy(t));}else fallbackCopy(t);}
+function copyText(t){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>toast("コピーしました"),()=>fallbackCopy(t));}else fallbackCopy(t);}
 function fallbackCopy(t){const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast("コピーしました");}catch(e){toast("コピーできませんでした");}document.body.removeChild(ta);}
 
 /* ============ 報告 ============ */
@@ -825,12 +807,7 @@ function allRows(){const rows=[["日付","曜日","報告者","計上部署","�
 $("exportXlsx").onclick=()=>{if(!db.reports.length){toast("書き出す報告がありません");return;}const ws=XLSX.utils.aoa_to_sheet(allRows());const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"接待交際費履歴");XLSX.writeFile(wb,"接待交際費_全履歴.xlsx");};
 $("exportCsv").onclick=()=>{if(!db.reports.length){toast("書き出す報告がありません");return;}const csv="\uFEFF"+allRows().map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(",")).join("\r\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="接待交際費_全履歴.csv";a.click();};
 
-// Supabaseライブラリの読み込み完了を待ってからロード
-if (document.readyState === 'complete') {
-  load();
-} else {
-  window.addEventListener('load', load);
-}
+load();
 </script>
 </body>
 </html>
