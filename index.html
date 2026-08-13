@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>接待交際費 申請・報告システム｜株式会社想歩</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --bg:#F4F5F7;--panel:#FFFFFF;--ink:#14181B;--ink2:#2E353D;--muted:#7C8590;
+    --line:#E8EAEE;--line2:#DDE0E6;
+    --accent:#12705E;--accent2:#0C4D41;--accent-soft:#E6F1ED;
+    --amber:#B5831C;--amber-soft:#F6EEDB;
+    --blue:#2F5AA6;--blue-soft:#E9EEF8;
+    --red:#B23A2E;--red-soft:#F7E8E5;
+    --green:#256B54;--green-soft:#E4F0EA;
+    --brass:#8A6D2F;--brass-soft:#F2ECDF;
+    --indigo:#3B4F98;--indigo-soft:#EAECF8;
+    --shadow:0 1px 2px rgba(16,20,28,.05),0 10px 28px rgba(16,20,28,.07);
+    --shadow-sm:0 1px 2px rgba(16,20,28,.06);
+    --sans:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",YuGothic,"Noto Sans JP","Segoe UI",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}html,body{margin:0;padding:0;}
+  body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.6;-webkit-font-smoothing:antialiased;letter-spacing:.01em;}
+  .num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;}
+  .muted{color:var(--muted);}
+  .appbar{background:linear-gradient(120deg,#171C21,#20272E);color:#fff;padding:22px 16px 24px;}
+  .appbar-in{max-width:840px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-end;gap:12px;}
+  .appbar .eyebrow{font-size:11px;letter-spacing:.22em;color:#9AA6B0;font-weight:600;}
+  .appbar h1{margin:4px 0 0;font-size:21px;font-weight:700;letter-spacing:.02em;}
+  .appbar .tag{font-size:11px;color:#AEB8C0;border:1px solid #3A424B;border-radius:20px;padding:4px 11px;}
+  .wrap{max-width:840px;margin:0 auto;padding:18px 16px 72px;}
+  .entries{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:6px 0 20px;}
+  .entrybtn{display:flex;gap:13px;align-items:center;border:1px solid var(--line);border-radius:16px;padding:16px;background:var(--panel);box-shadow:var(--shadow-sm);cursor:pointer;transition:.16s;text-align:left;}
+  .entrybtn:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--line2);}
+  .entrybtn .ec{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex:none;}
+  .entrybtn.apply .ec{background:var(--blue-soft);}.entrybtn.report .ec{background:var(--accent-soft);}
+  .entrybtn .t{font-size:15px;font-weight:700;}
+  .entrybtn .d{font-size:11.5px;color:var(--muted);margin-top:1px;}
+  .monthbar{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:16px;}
+  .monthbar button{border:1px solid var(--line);background:var(--panel);font-size:15px;color:var(--muted);width:32px;height:32px;border-radius:9px;cursor:pointer;box-shadow:var(--shadow-sm);}
+  .monthbar button:hover{color:var(--ink);}
+  .monthbar .m{font-size:14px;font-weight:600;min-width:104px;text-align:center;}
+  h2.sec{font-size:12px;letter-spacing:.08em;color:var(--muted);margin:22px 2px 11px;font-weight:700;display:flex;align-items:center;gap:8px;}
+  h2.sec .cnt{background:var(--line);color:var(--ink2);border-radius:20px;padding:1px 8px;font-size:11px;}
+  /* summary */
+  .summary{background:linear-gradient(120deg,#171C21,#20272E);color:#fff;border-radius:16px;padding:16px 18px;box-shadow:var(--shadow-sm);}
+  .sum-main{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
+  .sum-main .lab{font-size:12px;color:#B9C1C9;}
+  .sum-main .big{font-size:26px;font-weight:700;}
+  .sum-sub{font-size:11px;color:#9AA6B0;margin-top:2px;}
+  .sum-depts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:13px;}
+  .sd{background:rgba(255,255,255,.07);border-radius:11px;padding:9px 11px;}
+  .sd .k{font-size:10.5px;color:#C4CCD4;display:flex;align-items:center;gap:5px;}
+  .sd .dot{width:7px;height:7px;border-radius:50%;display:inline-block;}
+  .sd .v{font-size:15.5px;font-weight:700;margin-top:3px;}
+  .dot.exec{background:#D8B25A;}.dot.build{background:#38A98C;}.dot.ai{background:#7B8CD6;}
+  .grp{margin-bottom:14px;}
+  .grp-h{display:flex;justify-content:space-between;align-items:baseline;padding:0 3px 8px;}
+  .grp-h .gn{font-size:13.5px;font-weight:700;}
+  .grp-h .gnote{font-size:11px;color:var(--muted);}
+  .people{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  .pcard{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:14px;box-shadow:var(--shadow-sm);cursor:pointer;transition:.15s;}
+  .pcard:hover{transform:translateY(-1px);box-shadow:var(--shadow);border-color:var(--line2);}
+  .pc-top{display:flex;justify-content:space-between;align-items:center;}
+  .pc-name{font-size:14.5px;font-weight:700;}
+  .pc-top .chev{color:var(--muted);font-size:17px;}
+  .pc-amt{margin-top:8px;display:flex;align-items:baseline;gap:7px;}
+  .pc-amt .num{font-size:23px;font-weight:700;letter-spacing:-.01em;}
+  .pc-cap{font-size:10.5px;color:var(--muted);}
+  .pc-bar{height:6px;border-radius:4px;background:#EEF0F3;overflow:hidden;margin-top:10px;}
+  .pc-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));}
+  .pc-bar i.over{background:var(--red);}
+  .pc-sub{font-size:10.5px;color:var(--muted);margin-top:6px;}
+  .row{display:flex;gap:11px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:11px 13px;margin-bottom:8px;box-shadow:var(--shadow-sm);cursor:pointer;transition:.14s;}
+  .row:hover{border-color:var(--line2);transform:translateY(-1px);box-shadow:var(--shadow);}
+  .row .mid{flex:1;min-width:0;}
+  .row .t{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .row .s{font-size:11px;color:var(--muted);margin-top:1px;}
+  .row .amt{font-size:14.5px;font-weight:700;text-align:right;white-space:nowrap;}
+  .row .amt small{display:block;font-size:10px;color:var(--indigo);font-weight:500;}
+  .row .chev{color:var(--muted);font-size:16px;flex:none;}
+  .row .rc,.row .warn{font-size:14px;flex:none;}
+  .row .warn{color:var(--amber);}
+  .pill{font-size:10px;border-radius:20px;padding:2px 9px;font-weight:700;white-space:nowrap;flex:none;}
+  .pill.exec{background:var(--brass-soft);color:var(--brass);}
+  .pill.build{background:var(--accent-soft);color:var(--accent2);}
+  .pill.ai{background:var(--indigo-soft);color:var(--indigo);}
+  .pill.other{background:var(--line);color:var(--ink2);}
+  .st{font-size:10px;border-radius:20px;padding:2px 9px;font-weight:700;white-space:nowrap;flex:none;}
+  .st.pending{background:var(--amber-soft);color:var(--amber);}
+  .st.approved{background:var(--blue-soft);color:var(--blue);}
+  .st.rejected{background:var(--red-soft);color:var(--red);}
+  .st.done{background:var(--green-soft);color:var(--green);}
+  .st.noapp{background:var(--red-soft);color:var(--red);}
+  .empty{text-align:center;color:var(--muted);font-size:13px;padding:22px;border:1px dashed var(--line2);border-radius:13px;background:rgba(255,255,255,.5);}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
+  .toolbar button{font-size:12px;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:9px 13px;cursor:pointer;color:var(--ink);box-shadow:var(--shadow-sm);}
+  .toolbar button:hover{background:#fff;border-color:var(--line2);}
+  .toolbar button.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .toolbar button.primary:hover{background:var(--accent2);}
+  .scrim{position:fixed;inset:0;background:rgba(16,20,26,.5);display:none;align-items:flex-start;justify-content:center;padding:22px 12px;overflow:auto;z-index:50;backdrop-filter:blur(2px);}
+  .scrim.show{display:flex;}
+  .modal{background:var(--panel);border-radius:20px;max-width:540px;width:100%;padding:22px;box-shadow:0 24px 70px rgba(0,0,0,.3);}
+  .modal h3{margin:0 0 3px;font-size:18px;font-weight:700;}
+  .modal .lead{font-size:12px;color:var(--muted);margin-bottom:15px;}
+  .fld{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+  .fld label{font-size:11px;color:var(--ink2);font-weight:600;letter-spacing:.02em;}
+  .fld label .req{color:var(--red);}
+  .fld input,.fld select,.fld textarea{font-family:var(--sans);font-size:14px;padding:10px 11px;border:1px solid var(--line2);border-radius:10px;background:#fff;color:var(--ink);width:100%;}
+  .fld textarea{resize:vertical;min-height:54px;}
+  .fld input:focus,.fld select:focus,.fld textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+  .fld select:disabled{background:#F2F3F5;color:var(--muted);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .segs{display:flex;gap:6px;flex-wrap:wrap;}
+  .seg{flex:1;min-width:60px;text-align:center;padding:9px 4px;border:1px solid var(--line2);border-radius:10px;font-size:13px;cursor:pointer;background:#fff;color:var(--muted);font-weight:600;}
+  .seg.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .modalbtns{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+  .modalbtns button,.modalbtns a{flex:1;min-width:120px;padding:12px;border:none;border-radius:12px;font-size:14.5px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;display:block;}
+  .btn-save{background:var(--accent);color:#fff;}.btn-save:hover{background:var(--accent2);}
+  .btn-cancel{background:#fff;color:var(--muted);border:1px solid var(--line2)!important;}
+  .btn-line{background:#06C755;color:#fff;}
+  .btn-ok{background:var(--green);color:#fff;}.btn-ng{background:#fff;color:var(--red);border:1px solid #E4BFB9!important;}
+  .btn-edit{background:var(--blue);color:#fff;}
+  .btn-del{background:#fff;color:var(--red);border:1px solid #E4BFB9!important;}
+  .taxflag{font-size:12px;min-height:15px;font-weight:600;}
+  .taxflag.kaigi{color:var(--green);}.taxflag.settai{color:var(--amber);}
+  .notice{font-size:11px;background:var(--amber-soft);border:1px solid #EBDBB4;color:var(--amber);border-radius:10px;padding:9px 11px;margin-bottom:12px;}
+  .hide{display:none!important;}
+  .droprow{display:flex;gap:8px;}
+  .drop{flex:1;border:1.5px dashed var(--line2);border-radius:11px;padding:10px;text-align:center;font-size:13px;color:var(--muted);cursor:pointer;background:#fff;font-weight:600;}
+  .drop:hover{border-color:var(--accent);color:var(--accent);}
+  .rcpt-preview{display:flex;gap:10px;align-items:center;margin-top:8px;}
+  .rcpt-preview img{width:54px;height:54px;object-fit:cover;border-radius:9px;border:1px solid var(--line2);}
+  .ocr-status{font-size:12px;color:var(--blue);display:flex;align-items:center;gap:6px;margin-top:6px;}
+  .spin{width:12px;height:12px;border:2px solid #cdd;border-top-color:var(--blue);border-radius:50%;animation:sp .7s linear infinite;}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .preview{background:#F5F7F9;border:1px solid var(--line);border-radius:13px;padding:13px 15px;font-size:12.5px;white-space:pre-wrap;line-height:1.75;margin:6px 0 12px;}
+  .preview.green{background:var(--green-soft);border-color:#CFE6DB;}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:26px;font-size:13px;box-shadow:var(--shadow);z-index:120;opacity:0;transition:.25s;}
+  .toast.show{opacity:1;bottom:32px;}
+  .lineitem{border:1px solid var(--line2);border-radius:13px;padding:13px;margin-bottom:10px;background:#FCFCFD;}
+  .li-top{display:flex;gap:8px;align-items:center;margin-bottom:9px;}
+  .li-top .li-kubun{flex:1;}
+  .li-del{border:none;background:#F0E9E7;color:var(--red);width:34px;height:34px;border-radius:9px;font-size:16px;cursor:pointer;flex:none;}
+  .li-dir{margin-bottom:9px;}
+  .chk{display:flex;align-items:center;gap:9px;font-size:13px;margin:5px 0 9px;cursor:pointer;font-weight:500;}
+  .chk input{width:17px;height:17px;accent-color:var(--accent);}
+  .additem{width:100%;padding:11px;border:1.5px dashed var(--line2);border-radius:12px;background:#fff;color:var(--ink2);font-size:14px;font-weight:700;cursor:pointer;margin-bottom:12px;}
+  .additem:hover{border-color:var(--accent);color:var(--accent);}
+  .sumbar{display:flex;gap:16px;flex-wrap:wrap;background:#F5F7F9;border:1px solid var(--line);border-radius:11px;padding:11px 13px;font-size:14px;margin-bottom:12px;font-weight:700;}
+  .sumbar b{color:var(--muted);font-weight:600;font-size:11px;display:block;letter-spacing:.02em;}
+  .sumbar.blue{background:var(--blue-soft);border-color:#D2DEF1;}
+  .sumbar.over{background:var(--red-soft);border-color:#E8C9C3;}
+  .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:14px;}
+  .stat{background:#F5F7F9;border:1px solid var(--line);border-radius:12px;padding:11px 13px;}
+  .stat .k{font-size:10.5px;color:var(--muted);font-weight:600;}
+  .stat .v{font-size:18px;font-weight:700;margin-top:2px;}
+  .mini{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:11px;padding:9px 12px;margin-bottom:7px;cursor:pointer;}
+  .mini:hover{border-color:var(--line2);}
+  .mini .mm{flex:1;min-width:0;}
+  .mini .mt{font-size:13px;font-weight:600;}
+  .mini .ms{font-size:10.5px;color:var(--muted);}
+  .mini .ma{font-size:13px;font-weight:700;}
+  .checks{border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:12px;}
+  .chkrow{display:flex;gap:9px;align-items:flex-start;padding:9px 12px;font-size:12.5px;border-bottom:1px solid var(--line);}
+  .chkrow:last-child{border-bottom:none;}
+  .chkrow .ci{flex:none;font-weight:700;}
+  .chkrow.ok .ci{color:var(--green);}.chkrow.warn{background:var(--amber-soft);}.chkrow.warn .ci{color:var(--amber);}
+  .chkrow .ck{color:var(--muted);width:96px;flex:none;}
+  .chkrow .cv{flex:1;font-weight:600;}
+  .rcpt-imgs{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+  .rcpt-imgs img{width:74px;height:74px;object-fit:cover;border-radius:9px;border:1px solid var(--line2);cursor:zoom-in;}
+  .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;z-index:200;padding:20px;cursor:zoom-out;}
+  .lightbox.show{display:flex;}
+  .lightbox img{max-width:100%;max-height:100%;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.5);}
+  footer{text-align:center;font-size:11px;color:var(--muted);margin-top:26px;line-height:1.8;}
+  @media(max-width:560px){.people{grid-template-columns:1fr;}.entries{grid-template-columns:1fr;}.grid2{grid-template-columns:1fr;}.stats{grid-template-columns:1fr 1fr;}.sum-depts{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="appbar"><div class="appbar-in">
+  <div><div class="eyebrow">株式会社想歩</div><h1>接待交際費 申請・報告システム</h1></div>
+  <span class="tag">承認：宮崎嘉人・歌田修造</span>
+</div></div>
+
+<div class="wrap">
+  <div class="entries">
+    <button class="entrybtn apply" id="openApply"><div class="ec">📝</div><div><div class="t">① 事前申請</div><div class="d">接待の2日前までに登録・LINEで承認依頼</div></div></button>
+    <button class="entrybtn report" id="openReport"><div class="ec">📤</div><div><div class="t">② 報告</div><div class="d">申請と実績を見比べて報告</div></div></button>
+  </div>
+
+  <div class="monthbar"><button id="prevM">‹</button><span class="m" id="mLabel">2026年8月</span><button id="nextM">›</button></div>
+
+  <h2 class="sec">今月のサマリー</h2>
+  <div class="summary" id="summary"></div>
+
+  <h2 class="sec">対象者の使用状況（タップで個人詳細）</h2>
+  <div id="people"></div>
+
+  <h2 class="sec">事前申請の一覧 <span class="cnt" id="appCnt">0</span></h2>
+  <div id="appList"></div>
+
+  <h2 class="sec">報告の履歴 <span class="cnt" id="repCnt">0</span></h2>
+  <div id="repList"></div>
+
+  <div class="toolbar">
+    <button class="primary" id="exportXlsx">📊 Excel書き出し</button>
+    <button id="exportCsv">CSV</button>
+    <button id="setUrl">🔗 システムURL</button>
+  </div>
+
+  <footer>
+    データは全対象者で共有・蓄積されます。予算計上は「接待した（自社負担）」のみ。<br>
+    役員＝予算無制限／建築事業部＝年間48万円/人／AI事業部＝予算設定なし。通知は半自動（LINE文コピー）。
+  </footer>
+</div>
+
+<!-- 事前申請 -->
+<div class="scrim" id="applyScrim"><div class="modal">
+  <h3 id="a_title">① 事前申請</h3>
+  <div class="lead">接待の2日前までに登録してください。</div>
+  <div class="grid2">
+    <div class="fld"><label>申請者 <span class="req">*</span></label><select id="a_person"></select></div>
+    <div class="fld"><label>計上先（部署）<span class="req">*</span></label><select id="a_dept"></select></div>
+  </div>
+  <div class="fld hide" id="a_otherWrap"><label>氏名（その他）<span class="req">*</span></label><input type="text" id="a_other" placeholder="氏名を入力"></div>
+  <div class="grid2">
+    <div class="fld"><label>接待予定日 <span class="req">*</span></label><input type="date" id="a_date"></div>
+    <div class="fld"><label>予算（円）<span class="req">*</span></label><input type="number" id="a_budget" placeholder="20000" step="1000"></div>
+  </div>
+  <div class="fld"><label>誰と（相手・会社名）<span class="req">*</span></label><input type="text" id="a_partner" placeholder="例）○○建設 田中様"></div>
+  <div class="grid2">
+    <div class="fld"><label>どこで（店名・場所）</label><input type="text" id="a_place" placeholder="例）割烹〇〇"></div>
+    <div class="fld"><label>何次会まで</label><select id="a_rounds"><option>1次会</option><option>2次会</option><option>3次会以上</option></select></div>
+  </div>
+  <div class="fld"><label>目的 <span class="req">*</span></label><textarea id="a_purpose" placeholder="例）新規物件の受注に向けた関係構築"></textarea></div>
+  <div class="modalbtns"><button class="btn-cancel" data-close>キャンセル</button><button class="btn-save" id="a_save">申請を登録</button></div>
+</div></div>
+
+<!-- 申請詳細 -->
+<div class="scrim" id="appDetailScrim"><div class="modal">
+  <h3>事前申請の詳細</h3>
+  <div class="lead">内容をご確認のうえ、操作してください。</div>
+  <div class="preview" id="appDetailText"></div>
+  <div class="modalbtns" id="appDetailActions"></div>
+  <div class="modalbtns"><button class="btn-cancel" data-close>閉じる</button></div>
+</div></div>
+
+<!-- 決定 -->
+<div class="scrim" id="decisionScrim"><div class="modal">
+  <h3 id="decisionTitle">承認する</h3>
+  <div class="lead" id="decisionInfo"></div>
+  <div class="notice">操作できるのは宮崎嘉人・歌田修造のみです。ご自身の名前を選んでください。</div>
+  <div class="fld"><label>備考（任意）</label><textarea id="decisionNote" placeholder="例）予算内であればOK。2次会は控えめに。"></textarea></div>
+  <div class="modalbtns">
+    <button class="btn-save" data-dec="宮崎嘉人">宮崎嘉人</button>
+    <button class="btn-save" data-dec="歌田修造">歌田修造</button>
+  </div>
+  <div class="modalbtns"><button class="btn-cancel" data-close>キャンセル</button></div>
+</div></div>
+
+<!-- 通知 -->
+<div class="scrim" id="notifyScrim"><div class="modal">
+  <h3 id="notifyTitle">通知</h3>
+  <div class="lead" id="notifyLead"></div>
+  <div class="preview" id="notifyText"></div>
+  <div class="modalbtns"><button class="btn-line" id="notifyCopy">LINE用にコピー</button></div>
+  <div class="modalbtns"><button class="btn-cancel" data-close>閉じる</button></div>
+</div></div>
+
+<!-- 個人詳細 -->
+<div class="scrim" id="personScrim"><div class="modal">
+  <h3 id="personName">個人詳細</h3>
+  <div class="lead" id="personSub"></div>
+  <div id="personBody"></div>
+  <div class="modalbtns"><button class="btn-cancel" data-close>閉じる</button></div>
+</div></div>
+
+<!-- 報告詳細 -->
+<div class="scrim" id="repDetailScrim"><div class="modal">
+  <h3>報告の詳細</h3>
+  <div class="lead" id="repDetailSub"></div>
+  <div id="repDetailBody"></div>
+  <div class="modalbtns"><button class="btn-cancel" data-close>閉じる</button></div>
+</div></div>
+
+<!-- 報告 -->
+<div class="scrim" id="reportScrim"><div class="modal">
+  <h3>② 報告</h3>
+  <div class="lead">承認済みの事前申請を選ぶと、申請内容と実績を見比べられます。</div>
+  <div class="grid2">
+    <div class="fld"><label>報告者 <span class="req">*</span></label><select id="r_person"></select></div>
+    <div class="fld"><label>計上先（部署）<span class="req">*</span></label><select id="r_dept"></select></div>
+  </div>
+  <div class="fld hide" id="r_otherWrap"><label>氏名（その他）<span class="req">*</span></label><input type="text" id="r_other" placeholder="氏名を入力"></div>
+  <div class="fld"><label>事前申請（承認済みのみ表示）<span class="req">*</span></label><select id="r_appsel"><option value="">― 選択 ―</option></select></div>
+  <div class="preview green hide" id="r_appinfo"></div>
+  <div class="fld hide" id="r_noappWrap">
+    <label>事前申請できなかった理由 <span class="req">*</span></label>
+    <textarea id="r_reason" placeholder="例）急な誘いで当日となったため。"></textarea>
+    <div class="notice">事前申請がない報告には理由の入力が必須です。</div>
+  </div>
+  <label style="font-size:11px;color:var(--ink2);font-weight:600;">明細（次会・種別ごと）<span style="color:var(--red)">*</span></label>
+  <div id="r_items" style="margin-top:7px;"></div>
+  <button class="additem" id="r_addItem">＋ 明細を追加</button>
+  <div class="sumbar" id="r_sum"></div>
+  <div class="sumbar blue hide" id="r_compare"></div>
+  <div class="fld hide" id="r_overWrap"><label>予算超過の理由 <span class="req">*</span></label><textarea id="r_over" placeholder="例）先方の役員が急遽同席され人数が増えたため。"></textarea><div class="notice">実績（自社負担）が申請予算を超えています。理由が必須です。</div></div>
+  <div class="fld"><label>実際の接待内容（全体メモ）</label><textarea id="r_detail" placeholder="例）1次会で要望をヒアリング、2次会は先方のご厚意でご馳走に。"></textarea></div>
+  <div class="fld"><label>関係値の変化 <span class="req">*</span></label><textarea id="r_rel" placeholder="例）担当役員を紹介いただき、次回現地案内の約束を得た。"></textarea></div>
+  <div class="modalbtns"><button class="btn-cancel" data-close>キャンセル</button><button class="btn-save" id="r_save">報告を登録</button></div>
+</div></div>
+
+<div class="lightbox" id="lightbox"><img id="lightboxImg" alt="領収書"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY="soho-settai-v8";const OLDKEY="soho-settai-v7";
+const SHARED=true;
+const PEOPLE=[{n:"宮崎嘉人",d:"役員"},{n:"歌田修造",d:"役員"},{n:"宮崎誠人",d:"建築事業部"},{n:"浅野司",d:"建築事業部"},{n:"森田諒也",d:"AI事業部"},{n:"金井翔",d:"AI事業部"}];
+const DEPTS=["役員","建築事業部","AI事業部"];
+const BUILD="建築事業部";const BUILD_ANNUAL=480000;
+const KUBUN=[
+  {v:"会食1",cat:"会食",label:"1次会",t:"会食（1次会）"},{v:"会食2",cat:"会食",label:"2次会",t:"会食（2次会）"},
+  {v:"会食3",cat:"会食",label:"3次会以上",t:"会食（3次会以上）"},{v:"交通",cat:"交通",label:"",t:"交通（タクシー等）"},
+  {v:"手土産",cat:"手土産",label:"",t:"手土産"},{v:"ゴルフ",cat:"ゴルフ",label:"",t:"ゴルフ"},{v:"その他",cat:"その他",label:"",t:"その他"}
+];
+let db={applications:[],reports:[],systemUrl:""};
+let cur=new Date(2026,7,1);
+let rform={items:[]};
+let decisionId=null,decisionMode=null,editingAppId=null,currentAppBudget=null;
+
+const $=id=>document.getElementById(id);
+const yen=n=>"¥"+Math.round(n||0).toLocaleString("ja-JP");
+const yenS=n=>(n<0?"−":"")+"¥"+Math.abs(Math.round(n||0)).toLocaleString("ja-JP");
+const mkey=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
+const esc=s=>(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const WD=["日","月","火","水","木","金","土"];
+const dow=s=>{if(!s)return"";const d=new Date(s+"T00:00:00");return isNaN(d)?"":WD[d.getDay()];};
+const fmtFull=s=>s?(s+"（"+dow(s)+"）"):"-";
+const fmtShort=s=>s?((s).slice(5).replace("-","/")+"（"+dow(s)+"）"):"-";
+const homeDept=name=>{const p=PEOPLE.find(x=>x.n===name);return p?p.d:"AI事業部";};
+const deptClass=d=>d==="役員"?"exec":d==="建築事業部"?"build":d==="AI事業部"?"ai":"other";
+const deptNote=d=>d==="役員"?"予算無制限":d==="建築事業部"?"年間 48万円/人":d==="AI事業部"?"予算設定なし":"";
+
+const sumItems=(r,f)=>(r.items||[]).filter(f).reduce((s,i)=>s+(+i.amt||0),0);
+const shitaBudget=r=>sumItems(r,i=>i.dir==="した"&&!i.exempt);
+const saretaSum=r=>sumItems(r,i=>i.dir==="された");
+const exemptSum=r=>sumItems(r,i=>i.dir==="した"&&i.exempt);
+const inMonth=(x,ym)=>(x.date||"").slice(0,7)===ym;
+const inYear=(x,y)=>(x.date||"").slice(0,4)===String(y);
+
+async function storeGet(key){
+  try{if(window.storage&&window.storage.get){const r=await window.storage.get(key,SHARED);if(r&&r.value)return JSON.parse(r.value);}}catch(e){}
+  try{const l=localStorage.getItem(key);if(l)return JSON.parse(l);}catch(e){}
+  return null;
+}
+async function storeSet(){
+  try{if(window.storage&&window.storage.set){await window.storage.set(KEY,JSON.stringify(db),SHARED);return;}}catch(e){}
+  try{localStorage.setItem(KEY,JSON.stringify(db));}catch(e){}
+}catch(e){try{await window.storage.set(KEY,JSON.stringify(db),false);}catch(e2){}}}
+function migrate(){(db.applications||[]).forEach(a=>{if(a.dept==="役員用")a.dept="役員";});(db.reports||[]).forEach(r=>{if(r.dept==="役員用")r.dept="役員";});}
+async function load(){
+  let d=await storeGet(KEY);
+  if(!d){const old=await storeGet(OLDKEY);if(old){d=old;}}
+  if(d)db=Object.assign({applications:[],reports:[],systemUrl:""},d);
+  migrate();storeSet();render();
+}
+
+function reportsOf(name,ym){return db.reports.filter(r=>r.person===name&&inMonth(r,ym));}
+function monthUsed(name,ym){return reportsOf(name,ym).reduce((s,r)=>s+shitaBudget(r),0);}
+function monthSareta(name,ym){return reportsOf(name,ym).reduce((s,r)=>s+saretaSum(r),0);}
+function monthExempt(name,ym){return reportsOf(name,ym).reduce((s,r)=>s+exemptSum(r),0);}
+function annualBuild(name,y){return db.reports.filter(r=>r.person===name&&r.dept===BUILD&&inYear(r,y)).reduce((s,r)=>s+shitaBudget(r),0);}
+function monthApps(name,ym){return db.applications.filter(a=>a.person===name&&inMonth(a,ym));}
+function pendingBy(name,ym){return db.applications.filter(a=>a.person===name&&a.status==="承認待ち"&&inMonth(a,ym)).length;}
+function deptMonthUsed(dep,ym){return db.reports.filter(r=>r.dept===dep&&inMonth(r,ym)).reduce((s,r)=>s+shitaBudget(r),0);}
+function allMonthUsed(ym){return db.reports.filter(r=>inMonth(r,ym)).reduce((s,r)=>s+shitaBudget(r),0);}
+function allMonthSareta(ym){return db.reports.filter(r=>inMonth(r,ym)).reduce((s,r)=>s+saretaSum(r),0);}
+function urlLine(){return "\n▼申請システム："+(db.systemUrl||"（URL未設定）");}
+
+/* consistency checks: 申請と報告のリンク */
+function repChecks(r){
+  const app=r.appId?db.applications.find(a=>a.id===r.appId):null;
+  const list=[];
+  if(app){list.push(["ok","事前申請","✓ 承認済み（申請 "+app.person+" ／ 承認 "+(app.approvedBy||"-")+"）"]);}
+  else{list.push(["warn","事前申請","⚠ 事前申請なし（事後報告）"+(r.reason?"："+r.reason:"")]);}
+  if(app){list.push([app.person===r.person?"ok":"warn","申請者／報告者",app.person===r.person?"✓ 一致（"+r.person+"）":"⚠ 相違：申請 "+app.person+" ／ 報告 "+r.person]);}
+  if(app){list.push([app.dept===r.dept?"ok":"warn","計上部署",app.dept===r.dept?"✓ 一致（"+r.dept+"）":"⚠ 相違：申請 "+app.dept+" ／ 報告 "+r.dept]);}
+  if(app){list.push([app.date===r.date?"ok":"warn","予定日／報告日",app.date===r.date?"✓ 一致（"+fmtShort(r.date)+"）":"⚠ 相違：予定 "+fmtShort(app.date)+" ／ 報告 "+fmtShort(r.date)]);}
+  if(app){const sh=shitaBudget(r);const over=sh>app.budget;list.push([over?"warn":"ok","予算／実績",over?"⚠ 超過 ＋"+yen(sh-app.budget)+"（申請 "+yen(app.budget)+" → 実績 "+yen(sh)+"）":"✓ 予算内（申請 "+yen(app.budget)+" ／ 実績 "+yen(sh)+"）"]);}
+  return list;
+}
+function repHasIssue(r){return repChecks(r).some(c=>c[0]==="warn");}
+
+/* ============ render ============ */
+function render(){
+  const ym=mkey(cur),y=cur.getFullYear();
+  $("mLabel").textContent=y+"年"+(cur.getMonth()+1)+"月";
+  // summary
+  const mNum=cur.getMonth()+1;
+  const total=allMonthUsed(ym),sar=allMonthSareta(ym);
+  let sd="";DEPTS.forEach(d=>{sd+='<div class="sd"><div class="k"><span class="dot '+deptClass(d)+'"></span>'+d+'</div><div class="v num">'+yen(deptMonthUsed(d,ym))+'</div></div>';});
+  $("summary").innerHTML='<div class="sum-main"><div><div class="lab">'+mNum+'月 全員の使用合計（自社負担）</div><div class="sum-sub">被接待 合計 '+yen(sar)+'</div></div><div class="big num">'+yen(total)+'</div></div><div class="sum-depts">'+sd+'</div>';
+
+  const wrap=$("people");wrap.innerHTML="";
+  DEPTS.forEach(dep=>{
+    const mem=PEOPLE.filter(p=>p.d===dep);
+    let html='<div class="grp"><div class="grp-h"><span class="gn">'+dep+'</span><span class="gnote">'+deptNote(dep)+' ・ 今月 '+yen(deptMonthUsed(dep,ym))+'</span></div><div class="people">';
+    mem.forEach(m=>html+=personCard(m.n,dep));
+    html+='</div></div>';wrap.insertAdjacentHTML("beforeend",html);
+  });
+  const others=[...new Set([...db.reports,...db.applications].filter(x=>inMonth(x,ym)&&!PEOPLE.find(p=>p.n===x.person)).map(x=>x.person))];
+  if(others.length){let html='<div class="grp"><div class="grp-h"><span class="gn">その他</span><span class="gnote">個別</span></div><div class="people">';
+    others.forEach(n=>html+=personCard(n,(db.reports.concat(db.applications).find(x=>x.person===n)||{}).dept||"その他"));
+    html+='</div></div>';wrap.insertAdjacentHTML("beforeend",html);}
+  wrap.querySelectorAll("[data-person]").forEach(el=>el.onclick=()=>openPerson(el.dataset.person));
+
+  const apps=db.applications.filter(a=>inMonth(a,ym)).sort((a,b)=>b.createdAt-a.createdAt);
+  $("appCnt").textContent=apps.length;
+  const al=$("appList");
+  if(!apps.length){al.innerHTML='<div class="empty">この月の事前申請はありません。</div>';}
+  else{al.innerHTML="";apps.forEach(a=>{
+    const sc={"承認待ち":"pending","承認済":"approved","却下":"rejected","報告済":"done"}[a.status];
+    const who=(a.status==="承認済"||a.status==="報告済")&&a.approvedBy?' ・ 承認：'+a.approvedBy:(a.status==="却下"&&a.decidedBy?' ・ 却下：'+a.decidedBy:'');
+    const div=document.createElement("div");div.className="row";
+    div.innerHTML='<span class="st '+sc+'">'+a.status+'</span><span class="pill '+deptClass(a.dept)+'">'+a.dept+'</span>'+
+      '<div class="mid"><div class="t">'+esc(a.person+"｜"+a.partner)+'</div><div class="s">'+fmtShort(a.date)+' ・ 予算<span class="num">'+yen(a.budget)+'</span>'+esc(who)+'</div></div><span class="chev">›</span>';
+    div.onclick=()=>openAppDetail(a.id);al.appendChild(div);
+  });}
+
+  const reps=db.reports.filter(r=>inMonth(r,ym)).sort((a,b)=>b.createdAt-a.createdAt);
+  $("repCnt").textContent=reps.length;
+  const rl=$("repList");
+  if(!reps.length){rl.innerHTML='<div class="empty">この月の報告はありません。</div>';}
+  else{rl.innerHTML="";reps.forEach(r=>{
+    const noapp=!r.appId;const sh=shitaBudget(r),sa=saretaSum(r);const app=r.appId?db.applications.find(a=>a.id===r.appId):null;
+    const title=r.person+"｜"+(app?app.partner:(r.items&&r.items[0]&&r.items[0].vendor)||"接待");
+    const parts=[fmtShort(r.date),(r.items||[]).length+"明細"];if(sa>0)parts.push("被接待"+yen(sa));
+    const hasR=(r.items||[]).some(i=>i.receipt);const issue=repHasIssue(r);
+    const div=document.createElement("div");div.className="row";
+    div.innerHTML='<span class="st '+(noapp?"noapp":"done")+'">'+(noapp?"事後":"報告済")+'</span><span class="pill '+deptClass(r.dept)+'">'+(r.dept||"-")+'</span>'+
+      '<div class="mid"><div class="t">'+esc(title)+'</div><div class="s">'+esc(parts.join(" ・ "))+'</div></div>'+
+      (issue?'<span class="warn" title="要確認">⚠</span>':'')+(hasR?'<span class="rc">📎</span>':'')+'<div class="amt num">'+yen(sh)+(sa>0?'<small>被 '+yen(sa)+'</small>':'')+'</div>';
+    div.onclick=()=>openRepDetail(r);rl.appendChild(div);
+  });}
+}
+function personCard(name,dept){
+  const ym=mkey(cur),y=cur.getFullYear();const used=monthUsed(name,ym);const pend=pendingBy(name,ym);
+  let extra="";
+  if(dept===BUILD){const an=annualBuild(name,y);const bal=BUILD_ANNUAL-an;const pct=Math.min(100,an/BUILD_ANNUAL*100);
+    extra='<div class="pc-bar"><i class="'+(an>BUILD_ANNUAL?'over':'')+'" style="width:'+(an>BUILD_ANNUAL?100:pct)+'%"></i></div>'+
+      '<div class="pc-sub">年間 <span class="num">'+yen(an)+'</span> / <span class="num">¥480,000</span>　残 <span class="num">'+yenS(bal)+'</span></div>';
+  }else{extra='<div class="pc-sub">予算：'+(dept==="役員"?"無制限":"設定なし")+(pend?'　・ 承認待ち '+pend:'')+'</div>';}
+  return '<div class="pcard" data-person="'+esc(name)+'"><div class="pc-top"><span class="pc-name">'+esc(name)+'</span><span class="chev">›</span></div>'+
+    '<div class="pc-amt"><span class="num">'+yen(used)+'</span><span class="pc-cap">今月の自社負担</span></div>'+extra+'</div>';
+}
+
+/* ============ 個人詳細 ============ */
+function openPerson(name){
+  const ym=mkey(cur),y=cur.getFullYear();const dept=homeDept(name);
+  const reps=reportsOf(name,ym);const used=monthUsed(name,ym),sa=monthSareta(name,ym),ex=monthExempt(name,ym);const apps=monthApps(name,ym);
+  $("personName").textContent=name;$("personSub").textContent=dept+" ・ "+y+"年"+(cur.getMonth()+1)+"月";
+  let html='<div class="stats">'+
+    '<div class="stat"><div class="k">報告件数</div><div class="v num">'+reps.length+'<span style="font-size:12px"> 件</span></div></div>'+
+    '<div class="stat"><div class="k">使用額（自社負担）</div><div class="v num">'+yen(used)+'</div></div>'+
+    '<div class="stat"><div class="k">被接待（相手負担）</div><div class="v num">'+yen(sa)+'</div></div>'+
+    '<div class="stat"><div class="k">対象外</div><div class="v num">'+yen(ex)+'</div></div></div>';
+  if(dept===BUILD){const an=annualBuild(name,y);const bal=BUILD_ANNUAL-an;const pct=Math.min(100,an/BUILD_ANNUAL*100);
+    html+='<div style="background:#F5F7F9;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;"><div style="font-size:11px;color:var(--muted);font-weight:600;">建築事業部 年間予算</div><div style="display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 8px;"><span class="num" style="font-size:19px;font-weight:700">'+yen(an)+' <span style="font-size:12px;color:var(--muted)">/ ¥480,000</span></span><span class="num" style="font-size:12px;color:var(--muted)">残 '+yenS(bal)+'</span></div><div class="pc-bar"><i class="'+(an>BUILD_ANNUAL?'over':'')+'" style="width:'+(an>BUILD_ANNUAL?100:pct)+'%"></i></div></div>';}
+  html+='<div style="font-size:11px;color:var(--muted);font-weight:700;margin:4px 2px 8px;">申請状況（'+apps.length+'件）</div>';
+  if(!apps.length)html+='<div class="empty">この月の申請はありません。</div>';
+  else apps.sort((a,b)=>b.createdAt-a.createdAt).forEach(a=>{const sc={"承認待ち":"pending","承認済":"approved","却下":"rejected","報告済":"done"}[a.status];
+    html+='<div class="mini" data-app="'+a.id+'"><span class="st '+sc+'">'+a.status+'</span><div class="mm"><div class="mt">'+esc(a.partner)+'</div><div class="ms">'+fmtShort(a.date)+'</div></div><div class="ma num">'+yen(a.budget)+'</div></div>';});
+  if(reps.length){html+='<div style="font-size:11px;color:var(--muted);font-weight:700;margin:14px 2px 8px;">報告（'+reps.length+'件）</div>';
+    reps.sort((a,b)=>b.createdAt-a.createdAt).forEach(r=>{const app=r.appId?db.applications.find(a=>a.id===r.appId):null;
+      html+='<div class="mini" data-rep="'+r.id+'"><span class="st '+(r.appId?"done":"noapp")+'">'+(r.appId?"報告":"事後")+'</span><div class="mm"><div class="mt">'+esc(app?app.partner:(r.items[0]&&r.items[0].vendor)||"接待")+'</div><div class="ms">'+fmtShort(r.date)+' ・ '+(r.items||[]).length+'明細</div></div><div class="ma num">'+yen(shitaBudget(r))+'</div></div>';});}
+  $("personBody").innerHTML=html;
+  $("personBody").querySelectorAll("[data-app]").forEach(el=>el.onclick=()=>{closeAll();openAppDetail(el.dataset.app);});
+  $("personBody").querySelectorAll("[data-rep]").forEach(el=>el.onclick=()=>{const r=db.reports.find(x=>x.id===el.dataset.rep);closeAll();openRepDetail(r);});
+  $("personScrim").classList.add("show");
+}
+
+/* ============ 報告詳細 ============ */
+function openRepDetail(r){
+  const app=r.appId?db.applications.find(a=>a.id===r.appId):null;
+  $("repDetailSub").textContent=r.person+" ・ "+(r.dept||"-")+" ・ "+fmtFull(r.date);
+  let html='';
+  // 整合性チェック
+  html+='<div style="font-size:11px;color:var(--muted);font-weight:700;margin:0 2px 7px;">申請とのリンク／整合性チェック</div><div class="checks">';
+  repChecks(r).forEach(c=>{html+='<div class="chkrow '+c[0]+'"><span class="ci">'+(c[0]==="ok"?"✓":"⚠")+'</span><span class="ck">'+esc(c[1])+'</span><span class="cv">'+esc(c[2].replace(/^✓ |^⚠ /,""))+'</span></div>';});
+  html+='</div>';
+  html+='<div class="preview">相手：'+esc(app?app.partner:"-")+(r.appId?'':'\n事後理由：'+esc(r.reason))+'</div>';
+  (r.items||[]).forEach((i,n)=>{
+    html+='<div class="lineitem"><div style="display:flex;justify-content:space-between;"><b style="font-size:13px">'+(n+1)+'. '+esc((i.label?i.label+" ":"")+i.cat)+'</b><span class="num" style="font-weight:700">'+yen(i.amt)+'</span></div>'+
+      '<div style="font-size:11.5px;color:var(--muted);margin-top:3px;">接待'+i.dir+(i.ppl?' ・ '+i.ppl+'名（'+yen(i.amt/i.ppl)+'/人）':'')+(i.exempt?' ・ 対象外':'')+(i.vendor?' ・ '+esc(i.vendor):'')+'</div>'+
+      (i.receipt?'<div class="rcpt-imgs"><img class="rz" src="'+i.receipt+'"></div>':'')+'</div>';
+  });
+  html+='<div class="sumbar"><span><b>自社負担</b><span class="num">'+yen(shitaBudget(r))+'</span></span><span><b>相手負担</b><span class="num">'+yen(saretaSum(r))+'</span></span><span><b>対象外</b><span class="num">'+yen(exemptSum(r))+'</span></span></div>';
+  if(r.overReason)html+='<div class="preview" style="background:var(--red-soft);border-color:#E8C9C3;"><b>予算超過の理由</b>\n'+esc(r.overReason)+'</div>';
+  html+='<div class="preview"><b>実際の接待内容</b>\n'+esc(r.detail||"-")+'\n\n<b>関係値の変化</b>\n'+esc(r.rel||"-")+'</div>';
+  $("repDetailBody").innerHTML=html;
+  $("repDetailBody").querySelectorAll(".rz").forEach(img=>img.onclick=()=>openLightbox(img.src));
+  $("repDetailScrim").classList.add("show");
+}
+function openLightbox(src){$("lightboxImg").src=src;$("lightbox").classList.add("show");}
+$("lightbox").onclick=()=>$("lightbox").classList.remove("show");
+
+/* ============ 申請詳細 ============ */
+function openAppDetail(id){
+  const a=db.applications.find(x=>x.id===id);if(!a)return;
+  let t="申請者："+a.person+"（"+a.dept+"）\n接待予定日："+fmtFull(a.date)+"\n相手："+a.partner+"\n場所："+(a.place||"-")+"\n何次会："+a.rounds+"\n予算："+yen(a.budget)+"\n目的："+a.purpose+"\n\nステータス："+a.status;
+  if(a.approvedBy)t+="（承認："+a.approvedBy+"）";if(a.status==="却下"&&a.decidedBy)t+="（却下："+a.decidedBy+"）";
+  if(a.approvedNote)t+="\n承認備考："+a.approvedNote;if(a.rejectNote)t+="\n却下備考："+a.rejectNote;
+  $("appDetailText").textContent=t;
+  const act=$("appDetailActions");act.innerHTML="";
+  if(a.status!=="報告済"){const e=document.createElement("button");e.className="btn-edit";e.textContent="編集";e.onclick=()=>openApplyEdit(a);act.appendChild(e);}
+  if(a.status==="承認待ち"){
+    const ok=document.createElement("button");ok.className="btn-ok";ok.textContent="承認する";ok.onclick=()=>{closeAll();openDecision(a.id,"approve");};act.appendChild(ok);
+    const ng=document.createElement("button");ng.className="btn-ng";ng.textContent="却下する";ng.onclick=()=>{closeAll();openDecision(a.id,"reject");};act.appendChild(ng);
+  }
+  if(a.status==="承認待ち"||a.status==="却下"){
+    const del=document.createElement("button");del.className="btn-del";del.textContent="削除";
+    del.onclick=()=>{if(del.dataset.armed){removeApp(a.id);}else{del.dataset.armed="1";del.textContent="もう一度タップで削除";setTimeout(()=>{del.dataset.armed="";del.textContent="削除";},3000);}};
+    act.appendChild(del);
+  }
+  $("appDetailScrim").classList.add("show");
+}
+function removeApp(id){db.applications=db.applications.filter(a=>a.id!==id);storeSet();closeAll();render();toast("申請を削除しました");}
+
+/* ============ 決定 ============ */
+function openDecision(id,mode){decisionId=id;decisionMode=mode;const a=db.applications.find(x=>x.id===id);
+  $("decisionTitle").textContent=mode==="approve"?"承認する":"却下する";
+  $("decisionInfo").textContent=a?(a.person+"｜"+a.partner+"｜"+fmtFull(a.date)+"｜予算"+yen(a.budget)):"";
+  $("decisionNote").value="";$("decisionScrim").classList.add("show");}
+document.querySelectorAll("[data-dec]").forEach(b=>b.onclick=()=>{
+  const a=db.applications.find(x=>x.id===decisionId);if(!a)return;const name=b.dataset.dec;const note=$("decisionNote").value.trim();
+  if(decisionMode==="approve"){a.status="承認済";a.approvedBy=name;a.approvedNote=note;a.decidedAt=Date.now();storeSet();render();closeAll();showApprovalNotify(a);}
+  else{a.status="却下";a.decidedBy=name;a.rejectNote=note;a.decidedAt=Date.now();storeSet();render();closeAll();showRejectNotify(a);}
+});
+
+function fillPersonSelect(sel){sel.innerHTML="";PEOPLE.forEach(p=>{const o=document.createElement("option");o.value=p.n;o.textContent=p.n+"（"+p.d+"）";sel.appendChild(o);});const o=document.createElement("option");o.value="__other__";o.textContent="その他（氏名を入力）";sel.appendChild(o);}
+function fillDeptSelect(sel){sel.innerHTML="";DEPTS.forEach(d=>{const o=document.createElement("option");o.value=d;o.textContent=d;sel.appendChild(o);});}
+
+/* ============ 事前申請 ============ */
+$("openApply").onclick=()=>{editingAppId=null;$("a_title").textContent="① 事前申請";fillPersonSelect($("a_person"));fillDeptSelect($("a_dept"));$("a_person").value=PEOPLE[0].n;$("a_dept").value=PEOPLE[0].d;$("a_otherWrap").classList.add("hide");$("a_date").value=new Date().toISOString().slice(0,10);["a_budget","a_partner","a_place","a_purpose","a_other"].forEach(i=>$(i).value="");$("a_rounds").value="1次会";$("applyScrim").classList.add("show");};
+$("a_person").onchange=()=>{const v=$("a_person").value;const other=v==="__other__";$("a_otherWrap").classList.toggle("hide",!other);if(!other){const p=PEOPLE.find(x=>x.n===v);if(p)$("a_dept").value=p.d;}};
+function openApplyEdit(a){editingAppId=a.id;$("a_title").textContent="事前申請の編集";fillPersonSelect($("a_person"));fillDeptSelect($("a_dept"));
+  if(PEOPLE.find(x=>x.n===a.person)){$("a_person").value=a.person;$("a_otherWrap").classList.add("hide");}else{$("a_person").value="__other__";$("a_otherWrap").classList.remove("hide");$("a_other").value=a.person;}
+  $("a_dept").value=a.dept||homeDept(a.person);$("a_date").value=a.date;$("a_budget").value=a.budget;$("a_partner").value=a.partner;$("a_place").value=a.place||"";$("a_rounds").value=a.rounds;$("a_purpose").value=a.purpose;
+  closeAll();$("applyScrim").classList.add("show");}
+$("a_save").onclick=()=>{
+  let person=$("a_person").value;if(person==="__other__"){person=$("a_other").value.trim();if(!person){toast("氏名を入力してください");return;}}
+  const dept=$("a_dept").value,date=$("a_date").value,budget=+$("a_budget").value||0,partner=$("a_partner").value.trim(),place=$("a_place").value.trim(),rounds=$("a_rounds").value,purpose=$("a_purpose").value.trim();
+  if(!date||!budget||!partner||!purpose){toast("必須項目（*）を入力してください");return;}
+  if(editingAppId){const a=db.applications.find(x=>x.id===editingAppId);if(a){const was=(a.status==="承認済"||a.status==="却下");Object.assign(a,{person,dept,date,budget,partner,place,rounds,purpose});if(was){a.status="承認待ち";a.approvedBy="";a.decidedBy="";a.approvedNote="";a.rejectNote="";}}storeSet();closeAll();openNotify(a,true);render();return;}
+  const app={id:uid(),person,dept,date,budget,partner,place,rounds,purpose,status:"承認待ち",approvedBy:"",createdAt:Date.now()};
+  db.applications.push(app);storeSet();closeAll();openNotify(app,false);render();
+};
+function showNotify(title,lead,text){$("notifyTitle").textContent=title;$("notifyLead").textContent=lead;$("notifyText").textContent=text;$("notifyCopy").onclick=()=>copyText(text);$("notifyScrim").classList.add("show");}
+function budgetBlock(app){
+  const ym=(app.date||"").slice(0,7),y=+ym.slice(0,4),mNum=+ym.slice(5,7);
+  if(app.dept===BUILD){const an=annualBuild(app.person,y);const remain=BUILD_ANNUAL-an;const proj=remain-app.budget;
+    return "■ 予算状況（"+app.person+"／建築事業部）\n・年間予算：¥480,000\n・年間使用（建築計上）："+yen(an)+"\n・年間残："+yenS(remain)+"\n・本件使用後の見込み年間残："+yenS(proj)+"\n・（参考）"+mNum+"月の使用："+yen(monthUsed(app.person,ym));}
+  return "■ 計上先："+app.dept+"（"+(app.dept==="役員"?"予算無制限":"予算設定なし")+"）\n・"+mNum+"月の使用："+yen(monthUsed(app.person,ym));
+}
+function openNotify(app,isEdit){
+  const text="お疲れ様です。"+app.person+"です。\n"+
+    (isEdit?"先の事前申請を修正しましたので、再度ご確認・ご承認をお願いいたします。\n\n":"下記の接待について事前申請いたします。社長・専務、ご承認のほどよろしくお願いいたします。\n\n")+
+    "■ 申請内容\n・接待予定日："+fmtFull(app.date)+"\n・相手："+app.partner+"\n・場所："+(app.place||"-")+"\n・何次会："+app.rounds+"\n・予算："+yen(app.budget)+"\n・目的："+app.purpose+"\n\n"+
+    budgetBlock(app)+urlLine()+"\n\n以上、ご確認・ご承認をお願いいたします。";
+  showNotify(isEdit?"申請を修正しました ✅":"申請を登録しました ✅","下記をコピーして、社長・専務のLINEに貼り付けてください。",text);
+}
+function showApprovalNotify(app){const text="【接待 事前申請 承認のお知らせ】\n"+app.person+"さん\n\n下記の事前申請が "+app.approvedBy+" により承認されました。\n\n・接待予定日："+fmtFull(app.date)+"\n・相手："+app.partner+"\n・予算："+yen(app.budget)+"\n・目的："+app.purpose+(app.approvedNote?"\n\n【承認者より】"+app.approvedNote:"")+"\n\n接待後は「報告」から実績を登録してください。"+urlLine();
+  showNotify("承認しました ✅（"+app.approvedBy+"）","申請者への「承認通知」です。コピーしてLINEで申請者へ。",text);}
+function showRejectNotify(app){const text="【接待 事前申請 却下のお知らせ】\n"+app.person+"さん\n\n下記の事前申請は "+app.decidedBy+" により却下されました。\n\n・接待予定日："+fmtFull(app.date)+"\n・相手："+app.partner+"\n・予算："+yen(app.budget)+(app.rejectNote?"\n\n【理由・備考】"+app.rejectNote:"")+urlLine();
+  showNotify("却下しました（"+app.decidedBy+"）","申請者への「却下通知」です。コピーしてLINEで申請者へ。",text);}
+function copyText(t){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>toast("コピーしました"),()=>fallbackCopy(t));}else fallbackCopy(t);}
+function fallbackCopy(t){const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast("コピーしました");}catch(e){toast("コピーできませんでした");}document.body.removeChild(ta);}
+
+/* ============ 報告 ============ */
+$("openReport").onclick=()=>{fillPersonSelect($("r_person"));fillDeptSelect($("r_dept"));$("r_person").value=PEOPLE[0].n;$("r_dept").value=PEOPLE[0].d;$("r_otherWrap").classList.add("hide");resetReport();refreshAppSel();$("reportScrim").classList.add("show");};
+$("r_person").onchange=()=>{const v=$("r_person").value;const other=v==="__other__";$("r_otherWrap").classList.toggle("hide",!other);if(!other){const p=PEOPLE.find(x=>x.n===v);if(p)$("r_dept").value=p.d;}refreshAppSel();};
+function refreshAppSel(){
+  const p=$("r_person").value;const sel=$("r_appsel");sel.innerHTML='<option value="">― 選択 ―</option>';
+  db.applications.filter(a=>a.person===p&&a.status==="承認済").forEach(a=>{const o=document.createElement("option");o.value=a.id;o.textContent=fmtShort(a.date)+" "+a.partner+"（予算"+yen(a.budget)+"）";sel.appendChild(o);});
+  const none=document.createElement("option");none.value="__none__";none.textContent="★ 事前申請なし（理由を入力）";sel.appendChild(none);updateAppInfo();
+}
+$("r_appsel").onchange=()=>{updateAppInfo();recalc();};
+function updateAppInfo(){
+  const v=$("r_appsel").value;$("r_noappWrap").classList.toggle("hide",v!=="__none__");const info=$("r_appinfo");const deptSel=$("r_dept");
+  if(v&&v!=="__none__"){const a=db.applications.find(x=>x.id===v);if(a){currentAppBudget=a.budget;deptSel.value=a.dept;deptSel.disabled=true;
+    info.textContent="■ 申請内容（承認済み"+(a.approvedBy?"・"+a.approvedBy:"")+"）\n・接待予定日："+fmtFull(a.date)+"\n・相手："+a.partner+"\n・場所："+(a.place||"-")+"\n・何次会："+a.rounds+"\n・申請予算："+yen(a.budget)+"\n・目的："+a.purpose;info.classList.remove("hide");return;}}
+  currentAppBudget=null;info.classList.add("hide");deptSel.disabled=false;
+}
+function resetReport(){rform={items:[]};$("r_items").innerHTML="";["r_reason","r_detail","r_rel","r_over","r_other"].forEach(i=>$(i).value="");currentAppBudget=null;$("r_dept").disabled=false;$("r_appinfo").classList.add("hide");$("r_compare").classList.add("hide");$("r_overWrap").classList.add("hide");addItem();recalc();}
+$("r_addItem").onclick=()=>addItem();
+
+function addItem(){
+  const item={id:uid(),cat:"会食",label:"1次会",dir:"した",amt:"",ppl:"",exempt:0,receipt:null,vendor:"",ocrDate:""};
+  rform.items.push(item);
+  const card=document.createElement("div");card.className="lineitem";
+  card.innerHTML='<div class="li-top"><select class="li-kubun"></select><button class="li-del">×</button></div>'+
+    '<div class="segs li-dir"><div class="seg active" data-dir="した">接待した（自社負担）</div><div class="seg" data-dir="された">された（相手負担）</div></div>'+
+    '<div class="grid2"><div class="fld"><label class="li-amtlab">金額（税込）</label><input type="number" class="li-amt" step="100" placeholder="20000"></div>'+
+    '<div class="fld li-pplwrap"><label>参加人数（社内＋社外）</label><input type="number" class="li-ppl" min="1" placeholder="4"><div class="taxflag li-tax"></div></div></div>'+
+    '<label class="chk"><input type="checkbox" class="li-ex"> 予算の対象外（必要コンペ・謝罪の手土産など）</label>'+
+    '<div class="li-rcpt"><label style="font-size:11px;color:var(--ink2);font-weight:600">領収書 <span style="color:var(--red)">*</span></label>'+
+    '<div class="droprow"><div class="drop li-cam">📷 撮影</div><div class="drop li-lib">🖼 写真から選択</div></div>'+
+    '<input type="file" class="li-fcam hide" accept="image/*" capture="environment"><input type="file" class="li-flib hide" accept="image/*">'+
+    '<div class="li-ocr"></div><div class="rcpt-preview hide li-prev"><img class="li-thumb rz"><span class="li-vendor s"></span></div></div>';
+  const ksel=card.querySelector(".li-kubun");KUBUN.forEach(k=>{const o=document.createElement("option");o.value=k.v;o.textContent=k.t;ksel.appendChild(o);});
+  const dsegs=card.querySelectorAll(".li-dir .seg");
+  const amt=card.querySelector(".li-amt"),ppl=card.querySelector(".li-ppl"),ex=card.querySelector(".li-ex"),taxEl=card.querySelector(".li-tax");
+  const pplwrap=card.querySelector(".li-pplwrap"),rcpt=card.querySelector(".li-rcpt"),amtlab=card.querySelector(".li-amtlab");
+  function ui(){const meal=item.cat==="会食",sh=item.dir==="した";pplwrap.style.display=(meal&&sh)?"flex":"none";rcpt.style.display=sh?"block":"none";amtlab.textContent=sh?"金額（税込）":"相手負担の概算額";dsegs.forEach(x=>x.classList.toggle("active",x.dataset.dir===item.dir));}
+  function tax(){if(item.cat!=="会食"||item.dir!=="した"||!item.amt||!item.ppl){taxEl.textContent="";taxEl.className="taxflag li-tax";return;}const per=item.amt/item.ppl;if(per<=10000){taxEl.textContent="✓1人"+yen(per)+"（会議費可）";taxEl.className="taxflag li-tax kaigi";}else{taxEl.textContent="1人"+yen(per)+"（交際費）";taxEl.className="taxflag li-tax settai";}}
+  ksel.onchange=()=>{const k=KUBUN.find(x=>x.v===ksel.value);item.cat=k.cat;item.label=k.label;ui();tax();};
+  dsegs.forEach(s=>s.onclick=()=>{item.dir=s.dataset.dir;ui();tax();recalc();});
+  amt.oninput=()=>{item.amt=+amt.value||0;tax();recalc();};
+  ppl.oninput=()=>{item.ppl=+ppl.value||"";tax();};
+  ex.onchange=()=>{item.exempt=ex.checked?1:0;recalc();};
+  const fcam=card.querySelector(".li-fcam"),flib=card.querySelector(".li-flib");
+  card.querySelector(".li-cam").onclick=()=>fcam.click();card.querySelector(".li-lib").onclick=()=>flib.click();
+  const thumbEl=card.querySelector(".li-thumb");thumbEl.onclick=()=>{if(item.receipt)openLightbox(item.receipt);};
+  async function onFile(e){
+  const f=e.target.files[0];if(!f)return;
+  const thumb=await resizeImg(f,440,.55);
+  item.receipt=thumb;
+  card.querySelector(".li-prev").classList.remove("hide");
+  thumbEl.src=thumb;
+  const st=card.querySelector(".li-ocr");
+  st.innerHTML='<span class="ocr-status" style="color:var(--green)">✓ 添付完了（手入力で金額等を入力してください）</span>';
+  tax();recalc();e.target.value="";
+}
+  fcam.onchange=onFile;flib.onchange=onFile;
+  card.querySelector(".li-del").onclick=()=>{const idx=rform.items.indexOf(item);if(idx>=0)rform.items.splice(idx,1);card.remove();recalc();};
+  $("r_items").appendChild(card);ui();
+}
+function recalc(){let sh=0,sa=0,ex=0;rform.items.forEach(i=>{const a=+i.amt||0;if(i.dir==="された")sa+=a;else if(i.exempt)ex+=a;else sh+=a;});
+  $("r_sum").innerHTML='<span><b>予算に計上（自社負担）</b><span class="num">'+yen(sh)+'</span></span><span><b>相手負担（記録のみ）</b><span class="num">'+yen(sa)+'</span></span><span><b>対象外</b><span class="num">'+yen(ex)+'</span></span>';
+  const cmp=$("r_compare"),ow=$("r_overWrap");
+  if(currentAppBudget!=null){const diff=sh-currentAppBudget;const over=diff>0;cmp.classList.remove("hide");cmp.classList.toggle("over",over);cmp.classList.toggle("blue",!over);
+    cmp.innerHTML='<span><b>申請予算</b><span class="num">'+yen(currentAppBudget)+'</span></span><span><b>実績（自社負担）</b><span class="num">'+yen(sh)+'</span></span><span><b>差額</b><span class="num">'+(over?'＋'+yen(diff):yenS(diff))+'</span>'+(over?'（超過）':'（以内）')+'</span>';
+    ow.classList.toggle("hide",!over);}else{cmp.classList.add("hide");ow.classList.add("hide");}
+}
+function resizeImg(file,max,q){return new Promise(res=>{const img=new Image();const rd=new FileReader();rd.onload=()=>{img.onload=()=>{let w=img.width,h=img.height;if(w>h&&w>max){h=h*max/w;w=max;}else if(h>max){w=w*max/h;h=max;}const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);res(c.toDataURL("image/jpeg",q));};img.src=rd.result;};rd.readAsDataURL(file);});}
+,body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:400,messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:media,data:b64}},{type:"text",text:'この領収書を読み取り、JSONのみで返す（前置き・コードブロック不要）。{"amount":税込総額の数値,"date":"YYYY-MM-DD","vendor":"店名・支払先","category":"会食|交通|手土産|ゴルフ|その他"} 不明はnull。'}]}]})});const data=await res.json();const text=(data.content||[]).map(i=>i.type==="text"?i.text:"").join("");return JSON.parse(text.replace(/```json|```/g,"").trim());}
+
+$("r_save").onclick=()=>{
+  let person=$("r_person").value;if(person==="__other__"){person=$("r_other").value.trim();if(!person){toast("氏名を入力してください");return;}}
+  const appsel=$("r_appsel").value;if(!appsel){toast("事前申請を選択してください");return;}
+  const noApp=appsel==="__none__";if(noApp&&!$("r_reason").value.trim()){toast("事前申請できなかった理由は必須です");return;}
+  const items=rform.items.filter(i=>(+i.amt||0)>0);if(!items.length){toast("明細を1件以上（金額入り）入力してください");return;}
+  for(const i of items){if(i.dir==="した"&&!i.receipt){toast("「接待した」明細には領収書が必須です");return;}}
+  const sh=items.filter(i=>i.dir==="した"&&!i.exempt).reduce((s,i)=>s+(+i.amt||0),0);
+  const over=(currentAppBudget!=null&&sh>currentAppBudget);if(over&&!$("r_over").value.trim()){toast("予算超過の理由は必須です");return;}
+  if(!$("r_rel").value.trim()){toast("関係値の変化を入力してください");return;}
+  const app=noApp?null:db.applications.find(a=>a.id===appsel);const ocrDate=(items.find(i=>i.ocrDate)||{}).ocrDate;
+  const rep={id:uid(),person,dept:$("r_dept").value,appId:noApp?null:appsel,reason:noApp?$("r_reason").value.trim():"",date:(app?app.date:(ocrDate||new Date().toISOString().slice(0,10))),
+    items:items.map(i=>({cat:i.cat,label:i.label,dir:i.dir,amt:+i.amt||0,ppl:i.cat==="会食"&&i.dir==="した"?(+i.ppl||null):null,exempt:i.exempt,vendor:i.vendor,receipt:i.receipt})),
+    appBudget:currentAppBudget,overReason:over?$("r_over").value.trim():"",detail:$("r_detail").value.trim(),rel:$("r_rel").value.trim(),createdAt:Date.now()};
+  db.reports.push(rep);if(app)app.status="報告済";storeSet();closeAll();toast("報告を登録しました");
+  cur=new Date(rep.date.slice(0,4),+rep.date.slice(5,7)-1,1);render();
+};
+
+function closeAll(){document.querySelectorAll(".scrim").forEach(s=>s.classList.remove("show"));}
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=closeAll);
+document.querySelectorAll(".scrim").forEach(s=>s.onclick=e=>{if(e.target===s)closeAll();});
+let toastT;function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2600);}
+$("prevM").onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()-1,1);render();};
+$("nextM").onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);render();};
+$("setUrl").onclick=()=>{const v=prompt("申請システムのURL（LINE文に添付。ホスティング後に設定）",db.systemUrl||"");if(v!==null){db.systemUrl=v.trim();storeSet();toast("URLを保存しました");}};
+
+function allRows(){const rows=[["日付","曜日","報告者","計上部署","区分","カテゴリ","方向","金額(円)","参加人数","1人あたり","予算区分","申請予算","予算超過理由","事前申請","承認者","事後理由","店名/相手","全体メモ","関係値の変化"]];
+  db.reports.slice().sort((a,b)=>a.date<b.date?-1:1).forEach(r=>{const app=r.appId?db.applications.find(a=>a.id===r.appId):null;
+    (r.items||[]).forEach(i=>rows.push([r.date,dow(r.date),r.person,r.dept||"",i.label||i.cat,i.cat,"接待"+i.dir,i.amt,i.ppl||"",i.ppl?Math.round(i.amt/i.ppl):"",i.dir==="された"?"（被接待）":(i.exempt?"対象外":"対象"),r.appBudget!=null?r.appBudget:"",r.overReason||"",r.appId?"あり":"なし",app&&app.approvedBy?app.approvedBy:"",r.reason||"",i.vendor||(app?app.partner:"")||"",r.detail||"",r.rel||""]));});
+  return rows;}
+$("exportXlsx").onclick=()=>{if(!db.reports.length){toast("書き出す報告がありません");return;}const ws=XLSX.utils.aoa_to_sheet(allRows());const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"接待交際費履歴");XLSX.writeFile(wb,"接待交際費_全履歴.xlsx");};
+$("exportCsv").onclick=()=>{if(!db.reports.length){toast("書き出す報告がありません");return;}const csv="\uFEFF"+allRows().map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(",")).join("\r\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="接待交際費_全履歴.csv";a.click();};
+
+load();
+</script>
+</body>
+</html>
