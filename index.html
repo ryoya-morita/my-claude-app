@@ -392,9 +392,16 @@ spClient.auth.onAuthStateChange((event, session) => {
 $("loginBtn").onclick = async () => {
   const email = $("loginEmail").value.trim();
   const password = $("loginPass").value;
-  const { error } = await spClient.auth.signInWithPassword({ email, password });
+  
+  // ログイン処理を実行
+  const { data, error } = await spClient.auth.signInWithPassword({ email, password });
+  
+  // エラーがあれば、英語の詳細なエラーメッセージを直接画面に出す
   if (error) {
-    alert("ログインに失敗しました。メールアドレスとパスワードを確認してください。");
+    alert("【エラー詳細】\n" + error.message);
+  } else {
+    // 成功した場合も分かりやすく出す
+    alert("ログインに成功しました！データを読み込みます。");
   }
 };
 
