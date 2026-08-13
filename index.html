@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>接待交際費 申請・報告システム｜株式会社想歩</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
     --bg:#F4F5F7;--panel:#FFFFFF;--ink:#14181B;--ink2:#2E353D;--muted:#7C8590;
@@ -43,7 +44,6 @@
   .monthbar .m{font-size:14px;font-weight:600;min-width:104px;text-align:center;}
   h2.sec{font-size:12px;letter-spacing:.08em;color:var(--muted);margin:22px 2px 11px;font-weight:700;display:flex;align-items:center;gap:8px;}
   h2.sec .cnt{background:var(--line);color:var(--ink2);border-radius:20px;padding:1px 8px;font-size:11px;}
-  /* summary */
   .summary{background:linear-gradient(120deg,#171C21,#20272E);color:#fff;border-radius:16px;padding:16px 18px;box-shadow:var(--shadow-sm);}
   .sum-main{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
   .sum-main .lab{font-size:12px;color:#B9C1C9;}
@@ -133,8 +133,6 @@
   .rcpt-preview{display:flex;gap:10px;align-items:center;margin-top:8px;}
   .rcpt-preview img{width:54px;height:54px;object-fit:cover;border-radius:9px;border:1px solid var(--line2);}
   .ocr-status{font-size:12px;color:var(--blue);display:flex;align-items:center;gap:6px;margin-top:6px;}
-  .spin{width:12px;height:12px;border:2px solid #cdd;border-top-color:var(--blue);border-radius:50%;animation:sp .7s linear infinite;}
-  @keyframes sp{to{transform:rotate(360deg)}}
   .preview{background:#F5F7F9;border:1px solid var(--line);border-radius:13px;padding:13px 15px;font-size:12.5px;white-space:pre-wrap;line-height:1.75;margin:6px 0 12px;}
   .preview.green{background:var(--green-soft);border-color:#CFE6DB;}
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:26px;font-size:13px;box-shadow:var(--shadow);z-index:120;opacity:0;transition:.25s;}
@@ -211,7 +209,7 @@
   </div>
 
   <footer>
-    データは全対象者で共有・蓄積されます。予算計上は「接待した（自社負担）」のみ。<br>
+    データはSupabaseにより全対象者で自動共有・蓄積されます。<br>
     役員＝予算無制限／建築事業部＝年間48万円/人／AI事業部＝予算設定なし。通知は半自動（LINE文コピー）。
   </footer>
 </div>
@@ -316,8 +314,12 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const KEY="soho-settai-v8";const OLDKEY="soho-settai-v7";
-const SHARED=true;
+// ★ Supabase設定（接続情報）
+const SUPABASE_URL = "https://ivmwzvokrhhuyfkgvit.supabase.co";
+const SUPABASE_KEY = "ここにステップ1でコピーしたキーを貼り付けます";
+const spClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+const KEY="main_data";
 const PEOPLE=[{n:"宮崎嘉人",d:"役員"},{n:"歌田修造",d:"役員"},{n:"宮崎誠人",d:"建築事業部"},{n:"浅野司",d:"建築事業部"},{n:"森田諒也",d:"AI事業部"},{n:"金井翔",d:"AI事業部"}];
 const DEPTS=["役員","建築事業部","AI事業部"];
 const BUILD="建築事業部";const BUILD_ANNUAL=480000;
@@ -327,7 +329,7 @@ const KUBUN=[
   {v:"手土産",cat:"手土産",label:"",t:"手土産"},{v:"ゴルフ",cat:"ゴルフ",label:"",t:"ゴルフ"},{v:"その他",cat:"その他",label:"",t:"その他"}
 ];
 let db={applications:[],reports:[],systemUrl:""};
-let cur=new Date(2026,7,1);
+let cur=new Date();
 let rform={items:[]};
 let decisionId=null,decisionMode=null,editingAppId=null,currentAppBudget=null;
 
@@ -352,21 +354,40 @@ const exemptSum=r=>sumItems(r,i=>i.dir==="した"&&i.exempt);
 const inMonth=(x,ym)=>(x.date||"").slice(0,7)===ym;
 const inYear=(x,y)=>(x.date||"").slice(0,4)===String(y);
 
-async function storeGet(key){
-  try{if(window.storage&&window.storage.get){const r=await window.storage.get(key,SHARED);if(r&&r.value)return JSON.parse(r.value);}}catch(e){}
-  try{const l=localStorage.getItem(key);if(l)return JSON.parse(l);}catch(e){}
+async function storeGet(){
+  if(spClient){
+    try{
+      const { data, error } = await spClient.from('app_data').select('data').eq('id', KEY).single();
+      if(data && data.data) return data.data;
+    }catch(e){}
+  }
+  try{ const l = localStorage.getItem(KEY); if(l) return JSON.parse(l); }catch(e){}
   return null;
 }
+
 async function storeSet(){
-  try{if(window.storage&&window.storage.set){await window.storage.set(KEY,JSON.stringify(db),SHARED);return;}}catch(e){}
-  try{localStorage.setItem(KEY,JSON.stringify(db));}catch(e){}
-}catch(e){try{await window.storage.set(KEY,JSON.stringify(db),false);}catch(e2){}}}
-function migrate(){(db.applications||[]).forEach(a=>{if(a.dept==="役員用")a.dept="役員";});(db.reports||[]).forEach(r=>{if(r.dept==="役員用")r.dept="役員";});}
+  try{ localStorage.setItem(KEY, JSON.stringify(db)); }catch(e){}
+  if(spClient){
+    try{
+      await spClient.from('app_data').upsert({ id: KEY, data: db, updated_at: new Date().toISOString() });
+    }catch(e){}
+  }
+}
+
 async function load(){
-  let d=await storeGet(KEY);
-  if(!d){const old=await storeGet(OLDKEY);if(old){d=old;}}
-  if(d)db=Object.assign({applications:[],reports:[],systemUrl:""},d);
-  migrate();storeSet();render();
+  let d = await storeGet();
+  if(d) db = Object.assign({applications:[],reports:[],systemUrl:""}, d);
+  render();
+  
+  if(spClient){
+    spClient.channel('realtime_app_data')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'app_data' }, payload => {
+        if(payload.new && payload.new.data){
+          db = Object.assign({applications:[],reports:[],systemUrl:""}, payload.new.data);
+          render();
+        }
+      }).subscribe();
+  }
 }
 
 function reportsOf(name,ym){return db.reports.filter(r=>r.person===name&&inMonth(r,ym));}
@@ -381,7 +402,6 @@ function allMonthUsed(ym){return db.reports.filter(r=>inMonth(r,ym)).reduce((s,r
 function allMonthSareta(ym){return db.reports.filter(r=>inMonth(r,ym)).reduce((s,r)=>s+saretaSum(r),0);}
 function urlLine(){return "\n▼申請システム："+(db.systemUrl||"（URL未設定）");}
 
-/* consistency checks: 申請と報告のリンク */
 function repChecks(r){
   const app=r.appId?db.applications.find(a=>a.id===r.appId):null;
   const list=[];
@@ -395,11 +415,9 @@ function repChecks(r){
 }
 function repHasIssue(r){return repChecks(r).some(c=>c[0]==="warn");}
 
-/* ============ render ============ */
 function render(){
   const ym=mkey(cur),y=cur.getFullYear();
   $("mLabel").textContent=y+"年"+(cur.getMonth()+1)+"月";
-  // summary
   const mNum=cur.getMonth()+1;
   const total=allMonthUsed(ym),sar=allMonthSareta(ym);
   let sd="";DEPTS.forEach(d=>{sd+='<div class="sd"><div class="k"><span class="dot '+deptClass(d)+'"></span>'+d+'</div><div class="v num">'+yen(deptMonthUsed(d,ym))+'</div></div>';});
@@ -447,18 +465,18 @@ function render(){
     div.onclick=()=>openRepDetail(r);rl.appendChild(div);
   });}
 }
+
 function personCard(name,dept){
   const ym=mkey(cur),y=cur.getFullYear();const used=monthUsed(name,ym);const pend=pendingBy(name,ym);
   let extra="";
   if(dept===BUILD){const an=annualBuild(name,y);const bal=BUILD_ANNUAL-an;const pct=Math.min(100,an/BUILD_ANNUAL*100);
     extra='<div class="pc-bar"><i class="'+(an>BUILD_ANNUAL?'over':'')+'" style="width:'+(an>BUILD_ANNUAL?100:pct)+'%"></i></div>'+
-      '<div class="pc-sub">年間 <span class="num">'+yen(an)+'</span> / <span class="num">¥480,000</span>　残 <span class="num">'+yenS(bal)+'</span></div>';
-  }else{extra='<div class="pc-sub">予算：'+(dept==="役員"?"無制限":"設定なし")+(pend?'　・ 承認待ち '+pend:'')+'</div>';}
+      '<div class="pc-sub">年間 <span class="num">'+yen(an)+'</span> / <span class="num">¥480,000</span> 残 <span class="num">'+yenS(bal)+'</span></div>';
+  }else{extra='<div class="pc-sub">予算：'+(dept==="役員"?"無制限":"設定なし")+(pend?' ・ 承認待ち '+pend:'')+'</div>';}
   return '<div class="pcard" data-person="'+esc(name)+'"><div class="pc-top"><span class="pc-name">'+esc(name)+'</span><span class="chev">›</span></div>'+
     '<div class="pc-amt"><span class="num">'+yen(used)+'</span><span class="pc-cap">今月の自社負担</span></div>'+extra+'</div>';
 }
 
-/* ============ 個人詳細 ============ */
 function openPerson(name){
   const ym=mkey(cur),y=cur.getFullYear();const dept=homeDept(name);
   const reps=reportsOf(name,ym);const used=monthUsed(name,ym),sa=monthSareta(name,ym),ex=monthExempt(name,ym);const apps=monthApps(name,ym);
@@ -483,12 +501,10 @@ function openPerson(name){
   $("personScrim").classList.add("show");
 }
 
-/* ============ 報告詳細 ============ */
 function openRepDetail(r){
   const app=r.appId?db.applications.find(a=>a.id===r.appId):null;
   $("repDetailSub").textContent=r.person+" ・ "+(r.dept||"-")+" ・ "+fmtFull(r.date);
   let html='';
-  // 整合性チェック
   html+='<div style="font-size:11px;color:var(--muted);font-weight:700;margin:0 2px 7px;">申請とのリンク／整合性チェック</div><div class="checks">';
   repChecks(r).forEach(c=>{html+='<div class="chkrow '+c[0]+'"><span class="ci">'+(c[0]==="ok"?"✓":"⚠")+'</span><span class="ck">'+esc(c[1])+'</span><span class="cv">'+esc(c[2].replace(/^✓ |^⚠ /,""))+'</span></div>';});
   html+='</div>';
@@ -508,7 +524,6 @@ function openRepDetail(r){
 function openLightbox(src){$("lightboxImg").src=src;$("lightbox").classList.add("show");}
 $("lightbox").onclick=()=>$("lightbox").classList.remove("show");
 
-/* ============ 申請詳細 ============ */
 function openAppDetail(id){
   const a=db.applications.find(x=>x.id===id);if(!a)return;
   let t="申請者："+a.person+"（"+a.dept+"）\n接待予定日："+fmtFull(a.date)+"\n相手："+a.partner+"\n場所："+(a.place||"-")+"\n何次会："+a.rounds+"\n予算："+yen(a.budget)+"\n目的："+a.purpose+"\n\nステータス："+a.status;
@@ -530,7 +545,6 @@ function openAppDetail(id){
 }
 function removeApp(id){db.applications=db.applications.filter(a=>a.id!==id);storeSet();closeAll();render();toast("申請を削除しました");}
 
-/* ============ 決定 ============ */
 function openDecision(id,mode){decisionId=id;decisionMode=mode;const a=db.applications.find(x=>x.id===id);
   $("decisionTitle").textContent=mode==="approve"?"承認する":"却下する";
   $("decisionInfo").textContent=a?(a.person+"｜"+a.partner+"｜"+fmtFull(a.date)+"｜予算"+yen(a.budget)):"";
@@ -544,7 +558,6 @@ document.querySelectorAll("[data-dec]").forEach(b=>b.onclick=()=>{
 function fillPersonSelect(sel){sel.innerHTML="";PEOPLE.forEach(p=>{const o=document.createElement("option");o.value=p.n;o.textContent=p.n+"（"+p.d+"）";sel.appendChild(o);});const o=document.createElement("option");o.value="__other__";o.textContent="その他（氏名を入力）";sel.appendChild(o);}
 function fillDeptSelect(sel){sel.innerHTML="";DEPTS.forEach(d=>{const o=document.createElement("option");o.value=d;o.textContent=d;sel.appendChild(o);});}
 
-/* ============ 事前申請 ============ */
 $("openApply").onclick=()=>{editingAppId=null;$("a_title").textContent="① 事前申請";fillPersonSelect($("a_person"));fillDeptSelect($("a_dept"));$("a_person").value=PEOPLE[0].n;$("a_dept").value=PEOPLE[0].d;$("a_otherWrap").classList.add("hide");$("a_date").value=new Date().toISOString().slice(0,10);["a_budget","a_partner","a_place","a_purpose","a_other"].forEach(i=>$(i).value="");$("a_rounds").value="1次会";$("applyScrim").classList.add("show");};
 $("a_person").onchange=()=>{const v=$("a_person").value;const other=v==="__other__";$("a_otherWrap").classList.toggle("hide",!other);if(!other){const p=PEOPLE.find(x=>x.n===v);if(p)$("a_dept").value=p.d;}};
 function openApplyEdit(a){editingAppId=a.id;$("a_title").textContent="事前申請の編集";fillPersonSelect($("a_person"));fillDeptSelect($("a_dept"));
@@ -580,7 +593,6 @@ function showRejectNotify(app){const text="【接待 事前申請 却下のお�
 function copyText(t){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>toast("コピーしました"),()=>fallbackCopy(t));}else fallbackCopy(t);}
 function fallbackCopy(t){const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast("コピーしました");}catch(e){toast("コピーできませんでした");}document.body.removeChild(ta);}
 
-/* ============ 報告 ============ */
 $("openReport").onclick=()=>{fillPersonSelect($("r_person"));fillDeptSelect($("r_dept"));$("r_person").value=PEOPLE[0].n;$("r_dept").value=PEOPLE[0].d;$("r_otherWrap").classList.add("hide");resetReport();refreshAppSel();$("reportScrim").classList.add("show");};
 $("r_person").onchange=()=>{const v=$("r_person").value;const other=v==="__other__";$("r_otherWrap").classList.toggle("hide",!other);if(!other){const p=PEOPLE.find(x=>x.n===v);if(p)$("r_dept").value=p.d;}refreshAppSel();};
 function refreshAppSel(){
@@ -599,7 +611,7 @@ function resetReport(){rform={items:[]};$("r_items").innerHTML="";["r_reason","r
 $("r_addItem").onclick=()=>addItem();
 
 function addItem(){
-  const item={id:uid(),cat:"会食",label:"1次会",dir:"した",amt:"",ppl:"",exempt:0,receipt:null,vendor:"",ocrDate:""};
+  const item={id:uid(),cat:"会食",label:"1次会",dir:"した",amt:"",ppl:"",exempt:0,receipt:null,vendor:""};
   rform.items.push(item);
   const card=document.createElement("div");card.className="lineitem";
   card.innerHTML='<div class="li-top"><select class="li-kubun"></select><button class="li-del">×</button></div>'+
@@ -626,19 +638,20 @@ function addItem(){
   card.querySelector(".li-cam").onclick=()=>fcam.click();card.querySelector(".li-lib").onclick=()=>flib.click();
   const thumbEl=card.querySelector(".li-thumb");thumbEl.onclick=()=>{if(item.receipt)openLightbox(item.receipt);};
   async function onFile(e){
-  const f=e.target.files[0];if(!f)return;
-  const thumb=await resizeImg(f,440,.55);
-  item.receipt=thumb;
-  card.querySelector(".li-prev").classList.remove("hide");
-  thumbEl.src=thumb;
-  const st=card.querySelector(".li-ocr");
-  st.innerHTML='<span class="ocr-status" style="color:var(--green)">✓ 添付完了（手入力で金額等を入力してください）</span>';
-  tax();recalc();e.target.value="";
-}
+    const f=e.target.files[0];if(!f)return;
+    const thumb=await resizeImg(f,440,.55);
+    item.receipt=thumb;
+    card.querySelector(".li-prev").classList.remove("hide");
+    thumbEl.src=thumb;
+    const st=card.querySelector(".li-ocr");
+    st.innerHTML='<span class="ocr-status" style="color:var(--green)">✓ 添付完了（手入力で金額等を入力してください）</span>';
+    tax();recalc();e.target.value="";
+  }
   fcam.onchange=onFile;flib.onchange=onFile;
   card.querySelector(".li-del").onclick=()=>{const idx=rform.items.indexOf(item);if(idx>=0)rform.items.splice(idx,1);card.remove();recalc();};
   $("r_items").appendChild(card);ui();
 }
+
 function recalc(){let sh=0,sa=0,ex=0;rform.items.forEach(i=>{const a=+i.amt||0;if(i.dir==="された")sa+=a;else if(i.exempt)ex+=a;else sh+=a;});
   $("r_sum").innerHTML='<span><b>予算に計上（自社負担）</b><span class="num">'+yen(sh)+'</span></span><span><b>相手負担（記録のみ）</b><span class="num">'+yen(sa)+'</span></span><span><b>対象外</b><span class="num">'+yen(ex)+'</span></span>';
   const cmp=$("r_compare"),ow=$("r_overWrap");
@@ -647,7 +660,6 @@ function recalc(){let sh=0,sa=0,ex=0;rform.items.forEach(i=>{const a=+i.amt||0;i
     ow.classList.toggle("hide",!over);}else{cmp.classList.add("hide");ow.classList.add("hide");}
 }
 function resizeImg(file,max,q){return new Promise(res=>{const img=new Image();const rd=new FileReader();rd.onload=()=>{img.onload=()=>{let w=img.width,h=img.height;if(w>h&&w>max){h=h*max/w;w=max;}else if(h>max){w=w*max/h;h=max;}const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);res(c.toDataURL("image/jpeg",q));};img.src=rd.result;};rd.readAsDataURL(file);});}
-,body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:400,messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:media,data:b64}},{type:"text",text:'この領収書を読み取り、JSONのみで返す（前置き・コードブロック不要）。{"amount":税込総額の数値,"date":"YYYY-MM-DD","vendor":"店名・支払先","category":"会食|交通|手土産|ゴルフ|その他"} 不明はnull。'}]}]})});const data=await res.json();const text=(data.content||[]).map(i=>i.type==="text"?i.text:"").join("");return JSON.parse(text.replace(/```json|```/g,"").trim());}
 
 $("r_save").onclick=()=>{
   let person=$("r_person").value;if(person==="__other__"){person=$("r_other").value.trim();if(!person){toast("氏名を入力してください");return;}}
@@ -658,8 +670,8 @@ $("r_save").onclick=()=>{
   const sh=items.filter(i=>i.dir==="した"&&!i.exempt).reduce((s,i)=>s+(+i.amt||0),0);
   const over=(currentAppBudget!=null&&sh>currentAppBudget);if(over&&!$("r_over").value.trim()){toast("予算超過の理由は必須です");return;}
   if(!$("r_rel").value.trim()){toast("関係値の変化を入力してください");return;}
-  const app=noApp?null:db.applications.find(a=>a.id===appsel);const ocrDate=(items.find(i=>i.ocrDate)||{}).ocrDate;
-  const rep={id:uid(),person,dept:$("r_dept").value,appId:noApp?null:appsel,reason:noApp?$("r_reason").value.trim():"",date:(app?app.date:(ocrDate||new Date().toISOString().slice(0,10))),
+  const app=noApp?null:db.applications.find(a=>a.id===appsel);
+  const rep={id:uid(),person,dept:$("r_dept").value,appId:noApp?null:appsel,reason:noApp?$("r_reason").value.trim():"",date:(app?app.date:new Date().toISOString().slice(0,10)),
     items:items.map(i=>({cat:i.cat,label:i.label,dir:i.dir,amt:+i.amt||0,ppl:i.cat==="会食"&&i.dir==="した"?(+i.ppl||null):null,exempt:i.exempt,vendor:i.vendor,receipt:i.receipt})),
     appBudget:currentAppBudget,overReason:over?$("r_over").value.trim():"",detail:$("r_detail").value.trim(),rel:$("r_rel").value.trim(),createdAt:Date.now()};
   db.reports.push(rep);if(app)app.status="報告済";storeSet();closeAll();toast("報告を登録しました");
