@@ -175,6 +175,18 @@
 </style>
 </head>
 <body>
+
+<!-- ログイン画面 -->
+<div class="scrim" id="loginScrim" style="z-index: 9999; background: var(--bg);">
+  <div class="modal">
+    <h3>接待交際費 申請・報告システム</h3>
+    <div class="lead">利用するにはログインしてください。</div>
+    <div class="fld"><label>メールアドレス</label><input type="email" id="loginEmail" placeholder="morita@example.com"></div>
+    <div class="fld"><label>パスワード</label><input type="password" id="loginPass"></div>
+    <div class="modalbtns"><button class="btn-save" id="loginBtn">ログイン</button></div>
+  </div>
+</div>
+
 <div class="appbar"><div class="appbar-in">
   <div><div class="eyebrow">株式会社想歩</div><h1>接待交際費 申請・報告システム</h1></div>
   <span class="tag">承認：宮崎嘉人・歌田修造</span>
@@ -334,10 +346,9 @@ const SUPABASE_KEY = "sb_publishable_WpiaNhKlbXPWHOhBcH6F7w_t83VDxoF";
 
 const spClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const KEY="main_data";
 const PEOPLE=[{n:"宮崎嘉人",d:"役員"},{n:"歌田修造",d:"役員"},{n:"宮崎誠人",d:"建築事業部"},{n:"浅野司",d:"建築事業部"},{n:"森田諒也",d:"AI事業部"},{n:"金井翔",d:"AI事業部"}];
 const DEPTS=["役員","建築事業部","AI事業部"];
-const BUILD="建築事業部";const BUILD_ANNUAL=560,000;
+const BUILD="建築事業部";const BUILD_ANNUAL=560000;
 const KUBUN=[
   {v:"会食1",cat:"会食",label:"1次会",t:"会食（1次会）"},{v:"会食2",cat:"会食",label:"2次会",t:"会食（2次会）"},
   {v:"会食3",cat:"会食",label:"3次会以上",t:"会食（3次会以上）"},{v:"交通",cat:"交通",label:"",t:"交通（タクシー等）"},
@@ -353,7 +364,6 @@ const yen=n=>"¥"+Math.round(n||0).toLocaleString("ja-JP");
 const yenS=n=>(n<0?"−":"")+"¥"+Math.abs(Math.round(n||0)).toLocaleString("ja-JP");
 const mkey=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
 const esc=s=>(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const WD=["日","月","火","水","木","金","土"];
 const dow=s=>{if(!s)return"";const d=new Date(s+"T00:00:00");return isNaN(d)?"":WD[d.getDay()];};
 const fmtFull=s=>s?(s+"（"+dow(s)+"）"):"-";
@@ -369,55 +379,50 @@ const exemptSum=r=>sumItems(r,i=>i.dir==="した"&&i.exempt);
 const inMonth=(x,ym)=>(x.date||"").slice(0,7)===ym;
 const inYear=(x,y)=>(x.date||"").slice(0,4)===String(y);
 
-async function storeGet(){
-  try{
-    const { data, error } = await spClient.from('app_data').select('data').eq('id', KEY).single();
-    if(data && data.data) return data.data;
-  }catch(e){}
-  try{ const l = localStorage.getItem(KEY); if(l) return JSON.parse(l); }catch(e){}
-  return null;
-}
-
-async function storeSet(){
-  try{ localStorage.setItem(KEY, JSON.stringify(db)); }catch(e){}
-  try{
-    await spClient.from('app_data').upsert({ id: KEY, data: db, updated_at: new Date().toISOString() });
-  }catch(e){}
-}
-
-async function forceSync(){
-  try {
-    let localData = null;
-    try { const l = localStorage.getItem(KEY); if(l) localData = JSON.parse(l); } catch(e){}
-    
-    const { data } = await spClient.from('app_data').select('data').eq('id', KEY).single();
-    if(data && data.data){
-      db = Object.assign({applications:[],reports:[],systemUrl:""}, data.data);
-      if(localData && (localData.applications.length > db.applications.length || localData.reports.length > db.reports.length)){
-        db = Object.assign(db, localData);
-        await storeSet();
-      }
-    } else if(localData){
-      db = localData;
-      await storeSet();
-    }
-    render();
-    toast("クラウドと強制同期しました");
-  } catch(e){
-    toast("同期エラーが発生しました");
+// === 認証とログイン処理 ===
+spClient.auth.onAuthStateChange((event, session) => {
+  if (session) {
+    $("loginScrim").classList.remove("show"); // ログイン成功で画面を閉じる
+    loadDataFromSupabase(); // 新しいテーブルからデータを取得
+  } else {
+    $("loginScrim").classList.add("show"); // 未ログインなら画面を出す
   }
+});
+
+$("loginBtn").onclick = async () => {
+  const email = $("loginEmail").value.trim();
+  const password = $("loginPass").value;
+  const { error } = await spClient.auth.signInWithPassword({ email, password });
+  if (error) {
+    alert("ログインに失敗しました。メールアドレスとパスワードを確認してください。");
+  }
+};
+
+// === データベースのフォーマット変換 ===
+function mapApp(a) {
+  return { id: a.id, person: a.person, dept: a.dept, date: a.date, budget: a.budget, partner: a.partner, place: a.place, rounds: a.rounds, purpose: a.purpose, status: a.status, approvedBy: a.approved_by, approvedNote: a.approved_note, decidedBy: a.decided_by, rejectNote: a.reject_note, createdAt: new Date(a.created_at).getTime() };
+}
+function mapRep(r) {
+  return { id: r.id, person: r.person, dept: r.dept, appId: r.app_id, reason: r.reason, date: r.date, items: r.items, appBudget: r.app_budget, overReason: r.over_reason, detail: r.detail, rel: r.rel, checkedBy: r.checked_by, checkedAt: r.checked_at, createdAt: new Date(r.created_at).getTime() };
 }
 
-async function load(){
-  await forceSync();
-  
-  spClient.channel('realtime_app_data')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'app_data' }, payload => {
-      if(payload.new && payload.new.data){
-        db = Object.assign({applications:[],reports:[],systemUrl:""}, payload.new.data);
-        render();
-      }
-    }).subscribe();
+// === データ読み込み処理 ===
+async function loadDataFromSupabase() {
+  try {
+    const { data: apps, error: err1 } = await spClient.from('applications').select('*');
+    const { data: reps, error: err2 } = await spClient.from('reports').select('*');
+    
+    if (err1) throw err1;
+    if (err2) throw err2;
+
+    db.applications = (apps || []).map(mapApp);
+    db.reports = (reps || []).map(mapRep);
+    
+    render();
+  } catch (error) {
+    console.error(error);
+    toast("データの取得に失敗しました");
+  }
 }
 
 function reportsOf(name,ym){return db.reports.filter(r=>r.person===name&&inMonth(r,ym));}
@@ -602,13 +607,13 @@ function openRepDetail(r){
   } else {
      act.innerHTML = '<div class="notice" style="width:100%;margin-bottom:4px;">内容の確認・チェックは宮崎嘉人・歌田修造が行ってください。</div><button class="btn-save" data-checkrep="宮崎嘉人">宮崎嘉人が確認</button><button class="btn-save" data-checkrep="歌田修造">歌田修造が確認</button>';
      act.querySelectorAll("[data-checkrep]").forEach(b=>{
-       b.onclick=()=>{
+       b.onclick = async () => {
          r.checkedBy=b.dataset.checkrep;
-         r.checkedAt=Date.now();
-         storeSet();
+         const { error } = await spClient.from('reports').update({ checked_by: r.checkedBy, checked_at: new Date().toISOString() }).eq('id', r.id);
+         if(error){ toast("エラーが発生しました"); return; }
          closeAll();
-         render();
          toast("確認を記録しました（"+r.checkedBy+"）");
+         loadDataFromSupabase();
        };
      });
   }
@@ -642,16 +647,28 @@ function openAppDetail(id){
   }
   $("appDetailScrim").classList.add("show");
 }
-function removeApp(id){db.applications=db.applications.filter(a=>a.id!==id);storeSet();closeAll();render();toast("申請を削除しました");}
+
+async function removeApp(id){
+  await spClient.from('applications').delete().eq('id', id);
+  closeAll(); toast("申請を削除しました"); loadDataFromSupabase();
+}
 
 function openDecision(id,mode){decisionId=id;decisionMode=mode;const a=db.applications.find(x=>x.id===id);
   $("decisionTitle").textContent=mode==="approve"?"承認する":"却下する";
   $("decisionInfo").textContent=a?(a.person+"｜"+a.partner+"｜"+fmtFull(a.date)+"｜予算"+yen(a.budget)):"";
   $("decisionNote").value="";$("decisionScrim").classList.add("show");}
-document.querySelectorAll("[data-dec]").forEach(b=>b.onclick=()=>{
-  const a=db.applications.find(x=>x.id===decisionId);if(!a)return;const name=b.dataset.dec;const note=$("decisionNote").value.trim();
-  if(decisionMode==="approve"){a.status="承認済";a.approvedBy=name;a.approvedNote=note;a.decidedAt=Date.now();storeSet();render();closeAll();showApprovalNotify(a);}
-  else{a.status="却下";a.decidedBy=name;a.rejectNote=note;a.decidedAt=Date.now();storeSet();render();closeAll();showRejectNotify(a);}
+
+document.querySelectorAll("[data-dec]").forEach(b=>b.onclick = async () => {
+  const a=db.applications.find(x=>x.id===decisionId);if(!a)return;
+  const name=b.dataset.dec;const note=$("decisionNote").value.trim();
+  if(decisionMode==="approve"){
+    await spClient.from('applications').update({ status: '承認済', approved_by: name, approved_note: note }).eq('id', decisionId);
+    closeAll(); showApprovalNotify(a); loadDataFromSupabase();
+  }
+  else{
+    await spClient.from('applications').update({ status: '却下', decided_by: name, reject_note: note }).eq('id', decisionId);
+    closeAll(); showRejectNotify(a); loadDataFromSupabase();
+  }
 });
 
 function fillPersonSelect(sel){sel.innerHTML="";PEOPLE.forEach(p=>{const o=document.createElement("option");o.value=p.n;o.textContent=p.n+"（"+p.d+"）";sel.appendChild(o);});const o=document.createElement("option");o.value="__other__";o.textContent="その他（氏名を入力）";sel.appendChild(o);}
@@ -663,14 +680,25 @@ function openApplyEdit(a){editingAppId=a.id;$("a_title").textContent="事前申�
   if(PEOPLE.find(x=>x.n===a.person)){$("a_person").value=a.person;$("a_otherWrap").classList.add("hide");}else{$("a_person").value="__other__";$("a_otherWrap").classList.remove("hide");$("a_other").value=a.person;}
   $("a_dept").value=a.dept||homeDept(a.person);$("a_date").value=a.date;$("a_budget").value=a.budget;$("a_partner").value=a.partner;$("a_place").value=a.place||"";$("a_rounds").value=a.rounds;$("a_purpose").value=a.purpose;
   closeAll();$("applyScrim").classList.add("show");}
-$("a_save").onclick=async ()=>{
+
+$("a_save").onclick = async () => {
   let person=$("a_person").value;if(person==="__other__"){person=$("a_other").value.trim();if(!person){toast("氏名を入力してください");return;}}
-  const dept=$("a_dept").value,date=$("a_date").value,budget=+$("a_budget").value||0,partner=$("a_partner").value.trim(),place=$("a_place").value.trim(),rounds=$("a_rounds").value,purpose=$("a_purpose").value.trim();
+  const dept=$("a_dept").value, date=$("a_date").value, budget=+$("a_budget").value||0, partner=$("a_partner").value.trim(), place=$("a_place").value.trim(), rounds=$("a_rounds").value, purpose=$("a_purpose").value.trim();
   if(!date||!budget||!partner||!purpose){toast("必須項目（*）を入力してください");return;}
-  if(editingAppId){const a=db.applications.find(x=>x.id===editingAppId);if(a){const was=(a.status==="承認済"||a.status==="却下");Object.assign(a,{person,dept,date,budget,partner,place,rounds,purpose});if(was){a.status="承認待ち";a.approvedBy="";a.decidedBy="";a.approvedNote="";a.rejectNote="";}}await storeSet();closeAll();openNotify(a,true);render();return;}
-  const app={id:uid(),person,dept,date,budget,partner,place,rounds,purpose,status:"承認待ち",approvedBy:"",createdAt:Date.now()};
-  db.applications.push(app);await storeSet();closeAll();openNotify(app,false);render();
+  
+  if(editingAppId){
+    const a=db.applications.find(x=>x.id===editingAppId);
+    const { error } = await spClient.from('applications').update({
+      person, dept, date, budget, partner, place, rounds, purpose, status: '承認待ち', approved_by: null, decided_by: null, approved_note: null, reject_note: null
+    }).eq('id', editingAppId);
+    if(!error){ closeAll(); openNotify(Object.assign({}, a, {person, dept, date, budget, partner, place, rounds, purpose}), true); loadDataFromSupabase(); }
+  } else {
+    const appData = { person, dept, date, budget, partner, place, rounds, purpose, status: "承認待ち" };
+    const { error } = await spClient.from('applications').insert([appData]);
+    if(!error){ closeAll(); openNotify(appData, false); loadDataFromSupabase(); }
+  }
 };
+
 function showNotify(title,lead,text){$("notifyTitle").textContent=title;$("notifyLead").textContent=lead;$("notifyText").textContent=text;$("notifyCopy").onclick=()=>copyText(text);$("notifyScrim").classList.add("show");}
 function budgetBlock(app){
   const ym=(app.date||"").slice(0,7),y=+ym.slice(0,4),mNum=+ym.slice(5,7);
@@ -681,7 +709,7 @@ function budgetBlock(app){
 function openNotify(app,isEdit){
   const text="お疲れ様です。"+app.person+"です。\n"+
     (isEdit?"先の事前申請を修正しましたので、再度ご確認・ご承認をお願いいたします。\n\n":"下記の接待について事前申請いたします。社長・専務、ご承認のほどよろしくお願いいたします。\n\n")+
-    "■ 申請内容\n・接待予定日："+fmtFull(app.date)+"\n・相手："+app.partner+"\n・場所："+(a.place||"-")+"\n・何次会："+app.rounds+"\n・予算："+yen(app.budget)+"\n・目的："+app.purpose+"\n\n"+
+    "■ 申請内容\n・接待予定日："+fmtFull(app.date)+"\n・相手："+app.partner+"\n・場所："+(app.place||"-")+"\n・何次会："+app.rounds+"\n・予算："+yen(app.budget)+"\n・目的："+app.purpose+"\n\n"+
     budgetBlock(app)+urlLine()+"\n\n以上、ご確認・ご承認をお願いいたします。";
   showNotify(isEdit?"申請を修正しました ✅":"申請を登録しました ✅","下記をコピーして、社長・専務のLINEに貼り付けてください。",text);
 }
@@ -804,12 +832,28 @@ $("r_save").onclick=async ()=>{
   const sh=items.filter(i=>i.dir==="した"&&!i.exempt).reduce((s,i)=>s+(+i.amt||0),0);
   const over=(currentAppBudget!=null&&sh>currentAppBudget);if(over&&!$("r_over").value.trim()){toast("予算超過の理由は必須です");return;}
   if(!$("r_rel").value.trim()){toast("関係値の変化を入力してください");return;}
+  
   const app=noApp?null:db.applications.find(a=>a.id===appsel);
-  const rep={id:uid(),person,dept:$("r_dept").value,appId:noApp?null:appsel,reason:noApp?$("r_reason").value.trim():"",date:(app?app.date:new Date().toISOString().slice(0,10)),
-    items:items.map(i=>({cat:i.cat,label:i.label,dir:i.dir,amt:+i.amt||0,ppl:i.cat==="会食"&&i.dir==="した"?(+i.ppl||null):null,exempt:i.exempt,vendor:i.vendor,receipt:i.receipt})),
-    appBudget:currentAppBudget,overReason:over?$("r_over").value.trim():"",detail:$("r_detail").value.trim(),rel:$("r_rel").value.trim(),createdAt:Date.now()};
-  db.reports.push(rep);if(app)app.status="報告済";await storeSet();closeAll();toast("報告を登録しました");
-  cur=new Date(rep.date.slice(0,4),+rep.date.slice(5,7)-1,1);render();
+  const mappedItems = items.map(i=>({cat:i.cat, label:i.label, dir:i.dir, amt:+i.amt||0, ppl:i.cat==="会食"&&i.dir==="した"?(+i.ppl||null):null, exempt:i.exempt, vendor:i.vendor, receipt:i.receipt}));
+  
+  const repData = {
+    person, dept: $("r_dept").value, app_id: noApp?null:appsel, reason: noApp?$("r_reason").value.trim():null,
+    date: app?app.date:new Date().toISOString().slice(0,10), items: mappedItems,
+    app_budget: currentAppBudget, over_reason: over?$("r_over").value.trim():null,
+    detail: $("r_detail").value.trim(), rel: $("r_rel").value.trim(), checked_by: null
+  };
+
+  const { error } = await spClient.from('reports').insert([repData]);
+  if(app) {
+     await spClient.from('applications').update({status: '報告済'}).eq('id', app.id);
+  }
+  
+  if(!error){
+    closeAll(); toast("報告を登録しました"); loadDataFromSupabase();
+    cur=new Date(repData.date.slice(0,4),+repData.date.slice(5,7)-1,1);
+  } else {
+    toast("エラーが発生しました");
+  }
 };
 
 function closeAll(){document.querySelectorAll(".scrim").forEach(s=>s.classList.remove("show"));}
@@ -818,8 +862,8 @@ document.querySelectorAll(".scrim").forEach(s=>s.onclick=e=>{if(e.target===s)clo
 let toastT;function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2600);}
 $("prevM").onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()-1,1);render();};
 $("nextM").onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);render();};
-$("setUrl").onclick=()=>{const v=prompt("申請システムのURL（LINE文に添付）",db.systemUrl||"https://my-claude-app-orcin.vercel.app/");if(v!==null){db.systemUrl=v.trim();storeSet();toast("URLを保存しました");}};
-$("syncNow").onclick=()=>forceSync();
+$("setUrl").onclick=()=>{const v=prompt("申請システムのURL（LINE文に添付）",db.systemUrl||"https://my-claude-app-orcin.vercel.app/");if(v!==null){db.systemUrl=v.trim();toast("URLを設定しました（クラウド反映は不要です）");}};
+$("syncNow").onclick=()=>loadDataFromSupabase();
 
 function allRows(){const rows=[["日付","曜日","報告者","計上部署","区分","カテゴリ","方向","金額(円)","参加人数","1人あたり","予算区分","申請予算","予算超過理由","事前申請","承認者","役員確認者","事後理由","店名/相手","全体メモ","関係値の変化"]];
   db.reports.slice().sort((a,b)=>a.date<b.date?-1:1).forEach(r=>{const app=r.appId?db.applications.find(a=>a.id===r.appId):null;
@@ -828,7 +872,7 @@ function allRows(){const rows=[["日付","曜日","報告者","計上部署","�
 $("exportXlsx").onclick=()=>{if(!db.reports.length){toast("書き出す報告がありません");return;}const ws=XLSX.utils.aoa_to_sheet(allRows());const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"接待交際費履歴");XLSX.writeFile(wb,"接待交際費_全履歴.xlsx");};
 $("exportCsv").onclick=()=>{if(!db.reports.length){toast("書き出す報告がありません");return;}const csv="\uFEFF"+allRows().map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(",")).join("\r\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="接待交際費_全履歴.csv";a.click();};
 
-load();
+// 初回ロードの呼び出しは、認証ステータス監視 (onAuthStateChange) に任せているため、ここでは直接呼び出しません。
 </script>
 </body>
 </html>
