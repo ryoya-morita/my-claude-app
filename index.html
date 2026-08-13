@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>接待交際費 申請・報告システム｜株式会社想歩</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>
   :root{
     --bg:#F4F5F7;--panel:#FFFFFF;--ink:#14181B;--ink2:#2E353D;--muted:#7C8590;
@@ -330,17 +330,24 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ↓ ★ ココを書き換えてください（前回と同じキーです）★ ↓
+// ↓ ★ ココをご自身のSupabaseキーに貼り替えてください ★ ↓
 const SUPABASE_URL = "https://ivmwzvokrhhuyfkgvit.supabase.co";
 const SUPABASE_KEY = "sb_publishable_WpiaNhKlbXPWHOhBcH6F7w_t83VDxoF";
 // ↑ ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★ ↑
 
-const spClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+let spClient = null;
+
+function getSupabase() {
+  if (!spClient && window.supabase && window.supabase.createClient) {
+    spClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
+  return spClient;
+}
 
 const KEY="main_data";
 const PEOPLE=[{n:"宮崎嘉人",d:"役員"},{n:"歌田修造",d:"役員"},{n:"宮崎誠人",d:"建築事業部"},{n:"浅野司",d:"建築事業部"},{n:"森田諒也",d:"AI事業部"},{n:"金井翔",d:"AI事業部"}];
 const DEPTS=["役員","建築事業部","AI事業部"];
-const BUILD="建築事業部";const BUILD_ANNUAL=480000;
+const BUILD="建築事業部";const BUILD_ANNUAL=560000;
 const KUBUN=[
   {v:"会食1",cat:"会食",label:"1次会",t:"会食（1次会）"},{v:"会食2",cat:"会食",label:"2次会",t:"会食（2次会）"},
   {v:"会食3",cat:"会食",label:"3次会以上",t:"会食（3次会以上）"},{v:"交通",cat:"交通",label:"",t:"交通（タクシー等）"},
@@ -373,9 +380,10 @@ const inMonth=(x,ym)=>(x.date||"").slice(0,7)===ym;
 const inYear=(x,y)=>(x.date||"").slice(0,4)===String(y);
 
 async function storeGet(){
-  if(spClient){
+  const client = getSupabase();
+  if(client){
     try{
-      const { data, error } = await spClient.from('app_data').select('data').eq('id', KEY).single();
+      const { data, error } = await client.from('app_data').select('data').eq('id', KEY).single();
       if(data && data.data) return data.data;
     }catch(e){}
   }
@@ -385,9 +393,10 @@ async function storeGet(){
 
 async function storeSet(){
   try{ localStorage.setItem(KEY, JSON.stringify(db)); }catch(e){}
-  if(spClient){
+  const client = getSupabase();
+  if(client){
     try{
-      await spClient.from('app_data').upsert({ id: KEY, data: db, updated_at: new Date().toISOString() });
+      await client.from('app_data').upsert({ id: KEY, data: db, updated_at: new Date().toISOString() });
     }catch(e){}
   }
 }
@@ -397,8 +406,9 @@ async function load(){
   if(d) db = Object.assign({applications:[],reports:[],systemUrl:""}, d);
   render();
   
-  if(spClient){
-    spClient.channel('realtime_app_data')
+  const client = getSupabase();
+  if(client){
+    client.channel('realtime_app_data')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'app_data' }, payload => {
         if(payload.new && payload.new.data){
           db = Object.assign({applications:[],reports:[],systemUrl:""}, payload.new.data);
@@ -523,7 +533,7 @@ function personCard(name,dept){
   if(dept===BUILD){
     const bal=BUILD_ANNUAL-an;const pct=Math.min(100,an/BUILD_ANNUAL*100);
     extra='<div class="pc-bar"><i class="'+(an>BUILD_ANNUAL?'over':'')+'" style="width:'+(an>BUILD_ANNUAL?100:pct)+'%"></i></div>'+
-      '<div class="pc-sub">年間 <span class="num">'+yen(an)+'</span> / <span class="num">¥480,000</span> 残 <span class="num">'+yenS(bal)+'</span></div>';
+      '<div class="pc-sub">年間 <span class="num">'+yen(an)+'</span> / <span class="num">¥560,000</span> 残 <span class="num">'+yenS(bal)+'</span></div>';
   }else{
     extra='<div class="pc-sub">年間使用額：<span class="num">'+yen(an)+'</span> (予算なし)'+(pend?' ・ 承認待ち '+pend:'')+'</div>';
   }
@@ -544,7 +554,7 @@ function openPerson(name){
   const an=annualUsed(name,y);
   if(dept===BUILD){
     const bal=BUILD_ANNUAL-an;const pct=Math.min(100,an/BUILD_ANNUAL*100);
-    html+='<div style="background:#F5F7F9;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;"><div style="font-size:11px;color:var(--muted);font-weight:600;">建築事業部 年間予算</div><div style="display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 8px;"><span class="num" style="font-size:19px;font-weight:700">'+yen(an)+' <span style="font-size:12px;color:var(--muted)">/ ¥480,000</span></span><span class="num" style="font-size:12px;color:var(--muted)">残 '+yenS(bal)+'</span></div><div class="pc-bar"><i class="'+(an>BUILD_ANNUAL?'over':'')+'" style="width:'+(an>BUILD_ANNUAL?100:pct)+'%"></i></div></div>';
+    html+='<div style="background:#F5F7F9;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;"><div style="font-size:11px;color:var(--muted);font-weight:600;">建築事業部 年間予算</div><div style="display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 8px;"><span class="num" style="font-size:19px;font-weight:700">'+yen(an)+' <span style="font-size:12px;color:var(--muted)">/ ¥560,000</span></span><span class="num" style="font-size:12px;color:var(--muted)">残 '+yenS(bal)+'</span></div><div class="pc-bar"><i class="'+(an>BUILD_ANNUAL?'over':'')+'" style="width:'+(an>BUILD_ANNUAL?100:pct)+'%"></i></div></div>';
   } else {
     html+='<div style="background:#F5F7F9;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;"><div style="font-size:11px;color:var(--muted);font-weight:600;">年間使用額（累計）</div><div style="display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 0;"><span class="num" style="font-size:19px;font-weight:700">'+yen(an)+'</span><span style="font-size:12px;color:var(--muted)">予算設定なし</span></div></div>';
   }
@@ -663,7 +673,7 @@ function showNotify(title,lead,text){$("notifyTitle").textContent=title;$("notif
 function budgetBlock(app){
   const ym=(app.date||"").slice(0,7),y=+ym.slice(0,4),mNum=+ym.slice(5,7);
   if(app.dept===BUILD){const an=annualUsed(app.person,y);const remain=BUILD_ANNUAL-an;const proj=remain-app.budget;
-    return "■ 予算状況（"+app.person+"／建築事業部）\n・年間予算：¥480,000\n・年間使用（建築計上）："+yen(an)+"\n・年間残："+yenS(remain)+"\n・本件使用後の見込み年間残："+yenS(proj)+"\n・（参考）"+mNum+"月の使用："+yen(monthUsed(app.person,ym));}
+    return "■ 予算状況（"+app.person+"／建築事業部）\n・年間予算：¥560,000\n・年間使用（建築計上）："+yen(an)+"\n・年間残："+yenS(remain)+"\n・本件使用後の見込み年間残："+yenS(proj)+"\n・（参考）"+mNum+"月の使用："+yen(monthUsed(app.person,ym));}
   return "■ 計上先："+app.dept+"（"+(app.dept==="役員"?"予算無制限":"予算設定なし")+"）\n・"+mNum+"月の使用："+yen(monthUsed(app.person,ym));
 }
 function openNotify(app,isEdit){
@@ -677,7 +687,7 @@ function showApprovalNotify(app){const text="【接待 事前申請 承認のお
   showNotify("承認しました ✅（"+app.approvedBy+"）","申請者への「承認通知」です。コピーしてLINEで申請者へ。",text);}
 function showRejectNotify(app){const text="【接待 事前申請 却下のお知らせ】\n"+app.person+"さん\n\n下記の事前申請は "+app.decidedBy+" により却下されました。\n\n・接待予定日："+fmtFull(app.date)+"\n・相手："+app.partner+"\n・予算："+yen(app.budget)+(app.rejectNote?"\n\n【理由・備考】"+app.rejectNote:"")+urlLine();
   showNotify("却下しました（"+app.decidedBy+"）","申請者への「却下通知」です。コピーしてLINEで申請者へ。",text);}
-function copyText(t){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>toast("コピーしました"),()=>fallbackCopy(t));}else fallbackCopy(t);}
+function copyText(t){if(navigator.clipboard&&navigator.clipboardwriteText){navigator.clipboard.writeText(t).then(()=>toast("コピーしました"),()=>fallbackCopy(t));}else fallbackCopy(t);}
 function fallbackCopy(t){const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast("コピーしました");}catch(e){toast("コピーできませんでした");}document.body.removeChild(ta);}
 
 /* ============ 報告 ============ */
@@ -815,7 +825,12 @@ function allRows(){const rows=[["日付","曜日","報告者","計上部署","�
 $("exportXlsx").onclick=()=>{if(!db.reports.length){toast("書き出す報告がありません");return;}const ws=XLSX.utils.aoa_to_sheet(allRows());const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"接待交際費履歴");XLSX.writeFile(wb,"接待交際費_全履歴.xlsx");};
 $("exportCsv").onclick=()=>{if(!db.reports.length){toast("書き出す報告がありません");return;}const csv="\uFEFF"+allRows().map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(",")).join("\r\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="接待交際費_全履歴.csv";a.click();};
 
-load();
+// Supabaseライブラリの読み込み完了を待ってからロード
+if (document.readyState === 'complete') {
+  load();
+} else {
+  window.addEventListener('load', load);
+}
 </script>
 </body>
 </html>
