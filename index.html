@@ -43,7 +43,6 @@
   .monthbar button:hover{color:var(--ink);}
   .monthbar .m{font-size:14px;font-weight:600;min-width:104px;text-align:center;}
   h2.sec{font-size:12px;letter-spacing:.08em;color:var(--muted);margin:22px 2px 11px;font-weight:700;display:flex;align-items:center;gap:8px;}
-  /* flow pipeline */
   .flow{display:flex;align-items:center;gap:6px;overflow-x:auto;padding:2px 2px 6px;-webkit-overflow-scrolling:touch;}
   .fstage{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px 8px 11px;min-width:82px;text-align:center;cursor:pointer;box-shadow:var(--shadow-sm);position:relative;flex:none;transition:.14s;}
   .fstage:hover{border-color:var(--line2);transform:translateY(-1px);box-shadow:var(--shadow);}
@@ -53,7 +52,6 @@
   .fcount{font-size:10.5px;color:var(--muted);margin-top:2px;font-weight:700;}
   .fcount.done{background:var(--green-soft);color:var(--green);border-radius:20px;padding:1px 8px;display:inline-block;}
   .farrow{color:var(--line2);font-size:15px;flex:none;font-weight:700;}
-  /* summary */
   .summary{background:linear-gradient(120deg,#171C21,#20272E);color:#fff;border-radius:16px;padding:16px 18px;box-shadow:var(--shadow-sm);}
   .sum-main{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
   .sum-main .lab{font-size:12px;color:#B9C1C9;}
@@ -210,7 +208,8 @@
   <div id="people"></div>
 
   <div class="toolbar">
-    <button class="primary" id="exportXlsx">📊 Excel書き出し</button>
+    <button class="primary" id="syncNow">🔄 データを強制同期</button>
+    <button id="exportXlsx">📊 Excel書き出し</button>
     <button id="exportCsv">CSV</button>
     <button id="setUrl">🔗 システムURL</button>
   </div>
@@ -338,7 +337,7 @@ const spClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const KEY="main_data";
 const PEOPLE=[{n:"宮崎嘉人",d:"役員"},{n:"歌田修造",d:"役員"},{n:"宮崎誠人",d:"建築事業部"},{n:"浅野司",d:"建築事業部"},{n:"森田諒也",d:"AI事業部"},{n:"金井翔",d:"AI事業部"}];
 const DEPTS=["役員","建築事業部","AI事業部"];
-const BUILD="建築事業部";const BUILD_ANNUAL=560000;
+const BUILD="建築事業部";const BUILD_ANNUAL=560,000;
 const KUBUN=[
   {v:"会食1",cat:"会食",label:"1次会",t:"会食（1次会）"},{v:"会食2",cat:"会食",label:"2次会",t:"会食（2次会）"},
   {v:"会食3",cat:"会食",label:"3次会以上",t:"会食（3次会以上）"},{v:"交通",cat:"交通",label:"",t:"交通（タクシー等）"},
@@ -386,10 +385,31 @@ async function storeSet(){
   }catch(e){}
 }
 
+async function forceSync(){
+  try {
+    let localData = null;
+    try { const l = localStorage.getItem(KEY); if(l) localData = JSON.parse(l); } catch(e){}
+    
+    const { data } = await spClient.from('app_data').select('data').eq('id', KEY).single();
+    if(data && data.data){
+      db = Object.assign({applications:[],reports:[],systemUrl:""}, data.data);
+      if(localData && (localData.applications.length > db.applications.length || localData.reports.length > db.reports.length)){
+        db = Object.assign(db, localData);
+        await storeSet();
+      }
+    } else if(localData){
+      db = localData;
+      await storeSet();
+    }
+    render();
+    toast("クラウドと強制同期しました");
+  } catch(e){
+    toast("同期エラーが発生しました");
+  }
+}
+
 async function load(){
-  let d = await storeGet();
-  if(d) db = Object.assign({applications:[],reports:[],systemUrl:""}, d);
-  render();
+  await forceSync();
   
   spClient.channel('realtime_app_data')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'app_data' }, payload => {
@@ -643,13 +663,13 @@ function openApplyEdit(a){editingAppId=a.id;$("a_title").textContent="事前申�
   if(PEOPLE.find(x=>x.n===a.person)){$("a_person").value=a.person;$("a_otherWrap").classList.add("hide");}else{$("a_person").value="__other__";$("a_otherWrap").classList.remove("hide");$("a_other").value=a.person;}
   $("a_dept").value=a.dept||homeDept(a.person);$("a_date").value=a.date;$("a_budget").value=a.budget;$("a_partner").value=a.partner;$("a_place").value=a.place||"";$("a_rounds").value=a.rounds;$("a_purpose").value=a.purpose;
   closeAll();$("applyScrim").classList.add("show");}
-$("a_save").onclick=()=>{
+$("a_save").onclick=async ()=>{
   let person=$("a_person").value;if(person==="__other__"){person=$("a_other").value.trim();if(!person){toast("氏名を入力してください");return;}}
   const dept=$("a_dept").value,date=$("a_date").value,budget=+$("a_budget").value||0,partner=$("a_partner").value.trim(),place=$("a_place").value.trim(),rounds=$("a_rounds").value,purpose=$("a_purpose").value.trim();
   if(!date||!budget||!partner||!purpose){toast("必須項目（*）を入力してください");return;}
-  if(editingAppId){const a=db.applications.find(x=>x.id===editingAppId);if(a){const was=(a.status==="承認済"||a.status==="却下");Object.assign(a,{person,dept,date,budget,partner,place,rounds,purpose});if(was){a.status="承認待ち";a.approvedBy="";a.decidedBy="";a.approvedNote="";a.rejectNote="";}}storeSet();closeAll();openNotify(a,true);render();return;}
+  if(editingAppId){const a=db.applications.find(x=>x.id===editingAppId);if(a){const was=(a.status==="承認済"||a.status==="却下");Object.assign(a,{person,dept,date,budget,partner,place,rounds,purpose});if(was){a.status="承認待ち";a.approvedBy="";a.decidedBy="";a.approvedNote="";a.rejectNote="";}}await storeSet();closeAll();openNotify(a,true);render();return;}
   const app={id:uid(),person,dept,date,budget,partner,place,rounds,purpose,status:"承認待ち",approvedBy:"",createdAt:Date.now()};
-  db.applications.push(app);storeSet();closeAll();openNotify(app,false);render();
+  db.applications.push(app);await storeSet();closeAll();openNotify(app,false);render();
 };
 function showNotify(title,lead,text){$("notifyTitle").textContent=title;$("notifyLead").textContent=lead;$("notifyText").textContent=text;$("notifyCopy").onclick=()=>copyText(text);$("notifyScrim").classList.add("show");}
 function budgetBlock(app){
@@ -661,7 +681,7 @@ function budgetBlock(app){
 function openNotify(app,isEdit){
   const text="お疲れ様です。"+app.person+"です。\n"+
     (isEdit?"先の事前申請を修正しましたので、再度ご確認・ご承認をお願いいたします。\n\n":"下記の接待について事前申請いたします。社長・専務、ご承認のほどよろしくお願いいたします。\n\n")+
-    "■ 申請内容\n・接待予定日："+fmtFull(app.date)+"\n・相手："+app.partner+"\n・場所："+(app.place||"-")+"\n・何次会："+app.rounds+"\n・予算："+yen(app.budget)+"\n・目的："+app.purpose+"\n\n"+
+    "■ 申請内容\n・接待予定日："+fmtFull(app.date)+"\n・相手："+app.partner+"\n・場所："+(a.place||"-")+"\n・何次会："+app.rounds+"\n・予算："+yen(app.budget)+"\n・目的："+app.purpose+"\n\n"+
     budgetBlock(app)+urlLine()+"\n\n以上、ご確認・ご承認をお願いいたします。";
   showNotify(isEdit?"申請を修正しました ✅":"申請を登録しました ✅","下記をコピーして、社長・専務のLINEに貼り付けてください。",text);
 }
@@ -775,7 +795,7 @@ function recalc(){let sh=0,sa=0,ex=0;rform.items.forEach(i=>{const a=+i.amt||0;i
 }
 function resizeImg(file,max,q){return new Promise(res=>{const img=new Image();const rd=new FileReader();rd.onload=()=>{img.onload=()=>{let w=img.width,h=img.height;if(w>h&&w>max){h=h*max/w;w=max;}else if(h>max){w=w*max/h;h=max;}const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);res(c.toDataURL("image/jpeg",q));};img.src=rd.result;};rd.readAsDataURL(file);});}
 
-$("r_save").onclick=()=>{
+$("r_save").onclick=async ()=>{
   let person=$("r_person").value;if(person==="__other__"){person=$("r_other").value.trim();if(!person){toast("氏名を入力してください");return;}}
   const appsel=$("r_appsel").value;if(!appsel){toast("事前申請を選択してください");return;}
   const noApp=appsel==="__none__";if(noApp&&!$("r_reason").value.trim()){toast("事前申請できなかった理由は必須です");return;}
@@ -788,7 +808,7 @@ $("r_save").onclick=()=>{
   const rep={id:uid(),person,dept:$("r_dept").value,appId:noApp?null:appsel,reason:noApp?$("r_reason").value.trim():"",date:(app?app.date:new Date().toISOString().slice(0,10)),
     items:items.map(i=>({cat:i.cat,label:i.label,dir:i.dir,amt:+i.amt||0,ppl:i.cat==="会食"&&i.dir==="した"?(+i.ppl||null):null,exempt:i.exempt,vendor:i.vendor,receipt:i.receipt})),
     appBudget:currentAppBudget,overReason:over?$("r_over").value.trim():"",detail:$("r_detail").value.trim(),rel:$("r_rel").value.trim(),createdAt:Date.now()};
-  db.reports.push(rep);if(app)app.status="報告済";storeSet();closeAll();toast("報告を登録しました");
+  db.reports.push(rep);if(app)app.status="報告済";await storeSet();closeAll();toast("報告を登録しました");
   cur=new Date(rep.date.slice(0,4),+rep.date.slice(5,7)-1,1);render();
 };
 
@@ -799,6 +819,7 @@ let toastT;function toast(m){const t=$("toast");t.textContent=m;t.classList.add(
 $("prevM").onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()-1,1);render();};
 $("nextM").onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);render();};
 $("setUrl").onclick=()=>{const v=prompt("申請システムのURL（LINE文に添付）",db.systemUrl||"https://my-claude-app-orcin.vercel.app/");if(v!==null){db.systemUrl=v.trim();storeSet();toast("URLを保存しました");}};
+$("syncNow").onclick=()=>forceSync();
 
 function allRows(){const rows=[["日付","曜日","報告者","計上部署","区分","カテゴリ","方向","金額(円)","参加人数","1人あたり","予算区分","申請予算","予算超過理由","事前申請","承認者","役員確認者","事後理由","店名/相手","全体メモ","関係値の変化"]];
   db.reports.slice().sort((a,b)=>a.date<b.date?-1:1).forEach(r=>{const app=r.appId?db.applications.find(a=>a.id===r.appId):null;
