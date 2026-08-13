@@ -45,7 +45,7 @@
   h2.sec{font-size:12px;letter-spacing:.08em;color:var(--muted);margin:22px 2px 11px;font-weight:700;display:flex;align-items:center;gap:8px;}
   /* flow pipeline */
   .flow{display:flex;align-items:center;gap:6px;overflow-x:auto;padding:2px 2px 6px;-webkit-overflow-scrolling:touch;}
-  .fstage{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px 10px 11px;min-width:92px;text-align:center;cursor:pointer;box-shadow:var(--shadow-sm);position:relative;flex:none;transition:.14s;}
+  .fstage{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px 8px 11px;min-width:82px;text-align:center;cursor:pointer;box-shadow:var(--shadow-sm);position:relative;flex:none;transition:.14s;}
   .fstage:hover{border-color:var(--line2);transform:translateY(-1px);box-shadow:var(--shadow);}
   .ficon{font-size:22px;position:relative;display:inline-block;line-height:1;}
   .fbadge{position:absolute;top:-9px;right:-13px;background:var(--red);color:#fff;font-size:11px;font-weight:700;min-width:20px;height:20px;border-radius:11px;display:flex;align-items:center;justify-content:center;padding:0 5px;box-shadow:0 1px 4px rgba(178,58,46,.5);border:2px solid #fff;}
@@ -196,7 +196,11 @@
     <div class="farrow">›</div>
     <div class="fstage" data-stage="approved"><div class="ficon">✅<span class="fbadge hide" id="fb-approved">0</span></div><div class="flab">承認済み</div><div class="fcount">報告待ち</div></div>
     <div class="farrow">›</div>
-    <div class="fstage" data-stage="reported"><div class="ficon">📗</div><div class="flab">報告済み</div><div class="fcount done" id="fc-reported">0件</div></div>
+    <!-- 新設：報告確認フロー -->
+    <div class="fstage" data-stage="checking"><div class="ficon">👀<span class="fbadge hide" id="fb-checking">0</span></div><div class="flab">報告確認</div><div class="fcount">役員チェック</div></div>
+    <div class="farrow">›</div>
+    <!-- 新設：完了済み（データ蓄積） -->
+    <div class="fstage" data-stage="completed"><div class="ficon">📗</div><div class="flab">完了済み</div><div class="fcount done" id="fc-completed">0件</div></div>
     <div class="farrow">／</div>
     <div class="fstage" data-stage="rejected"><div class="ficon">↩️<span class="fbadge hide" id="fb-rejected">0</span></div><div class="flab">差し戻し</div><div class="fcount">要修正</div></div>
   </div>
@@ -285,10 +289,8 @@
   <h3>報告の詳細</h3>
   <div class="lead" id="repDetailSub"></div>
   <div id="repDetailBody"></div>
-  <div class="notice">内容の確認・チェックは宮崎嘉人・歌田修造が行ってください。</div>
   <div class="modalbtns" id="repCheckBtns">
-    <button class="btn-save" data-checkrep="宮崎嘉人">宮崎嘉人が確認</button>
-    <button class="btn-save" data-checkrep="歌田修造">歌田修造が確認</button>
+    <!-- JSから動的に「確認ボタン」または「確認完了テキスト」を注入 -->
   </div>
   <div class="modalbtns"><button class="btn-cancel" data-close>閉じる</button></div>
 </div></div>
@@ -332,8 +334,11 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ↓ ★ ココを書き換えてください（前回と同じキーです）★ ↓
 const SUPABASE_URL = "https://ivmwzvokrhhuyfkgvit.supabase.co";
-const SUPABASE_KEY = "ここにステップ1でコピーしたキーを貼り付けます";
+const SUPABASE_KEY = "sb_publishable_WpiaNhKlbXPWHOhBcH6F7w_t83VDxoF";
+// ↑ ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★ ↑
+
 const spClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
 const KEY="main_data";
@@ -411,7 +416,8 @@ function reportsOf(name,ym){return db.reports.filter(r=>r.person===name&&inMonth
 function monthUsed(name,ym){return reportsOf(name,ym).reduce((s,r)=>s+shitaBudget(r),0);}
 function monthSareta(name,ym){return reportsOf(name,ym).reduce((s,r)=>s+saretaSum(r),0);}
 function monthExempt(name,ym){return reportsOf(name,ym).reduce((s,r)=>s+exemptSum(r),0);}
-function annualBuild(name,y){return db.reports.filter(r=>r.person===name&&r.dept===BUILD&&inYear(r,y)).reduce((s,r)=>s+shitaBudget(r),0);}
+// ★ 年間使用額（誰でも集計可能に改修）
+function annualUsed(name,y){return db.reports.filter(r=>r.person===name&&inYear(r,y)).reduce((s,r)=>s+shitaBudget(r),0);}
 function monthApps(name,ym){return db.applications.filter(a=>a.person===name&&inMonth(a,ym));}
 function pendingBy(name,ym){return db.applications.filter(a=>a.person===name&&a.status==="承認待ち"&&inMonth(a,ym)).length;}
 function deptMonthUsed(dep,ym){return db.reports.filter(r=>r.dept===dep&&inMonth(r,ym)).reduce((s,r)=>s+shitaBudget(r),0);}
@@ -435,10 +441,17 @@ function repHasIssue(r){return repChecks(r).some(c=>c[0]==="warn");}
 function renderFlow(){
   const cPend=db.applications.filter(a=>a.status==="承認待ち").length;
   const cAppr=db.applications.filter(a=>a.status==="承認済").length;
-  const cRep=db.reports.length;
   const cRej=db.applications.filter(a=>a.status==="却下").length;
-  setBadge("fb-pending",cPend);setBadge("fb-approved",cAppr);setBadge("fb-rejected",cRej);
-  $("fc-reported").textContent=cRep+"件";
+  
+  // ★ 確認待ち（未チェック）と完了済み（チェック済）の件数
+  const cCheck=db.reports.filter(r=>!r.checkedBy).length;
+  const cComp=db.reports.filter(r=>r.checkedBy).length;
+
+  setBadge("fb-pending",cPend);
+  setBadge("fb-approved",cAppr);
+  setBadge("fb-rejected",cRej);
+  setBadge("fb-checking",cCheck); // 報告確認バッジ
+  $("fc-completed").textContent=cComp+"件";
 }
 function setBadge(id,n){const el=$(id);if(n>0){el.textContent=n;el.classList.remove("hide");}else{el.classList.add("hide");}}
 document.querySelectorAll(".fstage").forEach(el=>el.onclick=()=>openFlow(el.dataset.stage));
@@ -448,7 +461,14 @@ function openFlow(stage){
   if(stage==="pending"){title="申請中（承認待ち）";lead="承認者（宮崎嘉人・歌田修造）の承認待ちです。タップで承認/却下できます。";items=db.applications.filter(a=>a.status==="承認待ち");}
   else if(stage==="approved"){title="承認済み（報告待ち）";lead="承認済みの申請です。接待完了後に「この申請で報告する」をタップしてください。";items=db.applications.filter(a=>a.status==="承認済");}
   else if(stage==="rejected"){title="差し戻し（却下）";lead="却下された申請です。タップで編集・再申請、または削除できます。";items=db.applications.filter(a=>a.status==="却下");}
-  else{title="報告済み";lead="実績報告が完了した記録です。タップで内容確認および役員チェックが可能です。";items=db.reports.slice();type="rep";}
+  else if(stage==="checking"){
+    title="報告確認（役員チェック）";lead="報告済みのデータです。宮崎嘉人・歌田修造の確認が必要です。";
+    items=db.reports.filter(r=>!r.checkedBy);type="rep";
+  }
+  else{ // completed
+    title="完了済み（データ蓄積）";lead="役員確認まで全て完了したデータです。タップで詳細を確認できます。";
+    items=db.reports.filter(r=>r.checkedBy);type="rep";
+  }
   items.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
   $("flowTitle").textContent=title;$("flowLead").textContent=lead;
   const body=$("flowBody");
@@ -505,11 +525,16 @@ function render(){
 
 function personCard(name,dept){
   const ym=mkey(cur),y=cur.getFullYear();const used=monthUsed(name,ym);const pend=pendingBy(name,ym);
+  const an=annualUsed(name,y);
   let extra="";
-  if(dept===BUILD){const an=annualBuild(name,y);const bal=BUILD_ANNUAL-an;const pct=Math.min(100,an/BUILD_ANNUAL*100);
+  // ★ 年間使用額を全員に表示
+  if(dept===BUILD){
+    const bal=BUILD_ANNUAL-an;const pct=Math.min(100,an/BUILD_ANNUAL*100);
     extra='<div class="pc-bar"><i class="'+(an>BUILD_ANNUAL?'over':'')+'" style="width:'+(an>BUILD_ANNUAL?100:pct)+'%"></i></div>'+
       '<div class="pc-sub">年間 <span class="num">'+yen(an)+'</span> / <span class="num">¥480,000</span> 残 <span class="num">'+yenS(bal)+'</span></div>';
-  }else{extra='<div class="pc-sub">予算：'+(dept==="役員"?"無制限":"設定なし")+(pend?' ・ 承認待ち '+pend:'')+'</div>';}
+  }else{
+    extra='<div class="pc-sub">年間使用額：<span class="num">'+yen(an)+'</span> (予算なし)'+(pend?' ・ 承認待ち '+pend:'')+'</div>';
+  }
   return '<div class="pcard" data-person="'+esc(name)+'"><div class="pc-top"><span class="pc-name">'+esc(name)+'</span><span class="chev">›</span></div>'+
     '<div class="pc-amt"><span class="num">'+yen(used)+'</span><span class="pc-cap">今月の自社負担</span></div>'+extra+'</div>';
 }
@@ -523,8 +548,16 @@ function openPerson(name){
     '<div class="stat"><div class="k">使用額（自社負担）</div><div class="v num">'+yen(used)+'</div></div>'+
     '<div class="stat"><div class="k">被接待（相手負担）</div><div class="v num">'+yen(sa)+'</div></div>'+
     '<div class="stat"><div class="k">対象外</div><div class="v num">'+yen(ex)+'</div></div></div>';
-  if(dept===BUILD){const an=annualBuild(name,y);const bal=BUILD_ANNUAL-an;const pct=Math.min(100,an/BUILD_ANNUAL*100);
-    html+='<div style="background:#F5F7F9;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;"><div style="font-size:11px;color:var(--muted);font-weight:600;">建築事業部 年間予算</div><div style="display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 8px;"><span class="num" style="font-size:19px;font-weight:700">'+yen(an)+' <span style="font-size:12px;color:var(--muted)">/ ¥480,000</span></span><span class="num" style="font-size:12px;color:var(--muted)">残 '+yenS(bal)+'</span></div><div class="pc-bar"><i class="'+(an>BUILD_ANNUAL?'over':'')+'" style="width:'+(an>BUILD_ANNUAL?100:pct)+'%"></i></div></div>';}
+    
+  const an=annualUsed(name,y);
+  if(dept===BUILD){
+    const bal=BUILD_ANNUAL-an;const pct=Math.min(100,an/BUILD_ANNUAL*100);
+    html+='<div style="background:#F5F7F9;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;"><div style="font-size:11px;color:var(--muted);font-weight:600;">建築事業部 年間予算</div><div style="display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 8px;"><span class="num" style="font-size:19px;font-weight:700">'+yen(an)+' <span style="font-size:12px;color:var(--muted)">/ ¥480,000</span></span><span class="num" style="font-size:12px;color:var(--muted)">残 '+yenS(bal)+'</span></div><div class="pc-bar"><i class="'+(an>BUILD_ANNUAL?'over':'')+'" style="width:'+(an>BUILD_ANNUAL?100:pct)+'%"></i></div></div>';
+  } else {
+    // ★ 建築事業部以外でも年間使用額を大きく表示
+    html+='<div style="background:#F5F7F9;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;"><div style="font-size:11px;color:var(--muted);font-weight:600;">年間使用額（累計）</div><div style="display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 0;"><span class="num" style="font-size:19px;font-weight:700">'+yen(an)+'</span><span style="font-size:12px;color:var(--muted)">予算設定なし</span></div></div>';
+  }
+  
   html+='<div style="font-size:11px;color:var(--muted);font-weight:700;margin:4px 2px 8px;">申請状況（'+apps.length+'件）</div>';
   if(!apps.length)html+='<div class="empty">この月の申請はありません。</div>';
   else apps.sort((a,b)=>b.createdAt-a.createdAt).forEach(a=>{const sc={"承認待ち":"pending","承認済":"approved","却下":"rejected","報告済":"done"}[a.status];
@@ -541,7 +574,7 @@ function openPerson(name){
 function openRepDetail(r){
   currentRepId=r.id;
   const app=r.appId?db.applications.find(a=>a.id===r.appId):null;
-  $("repDetailSub").textContent=r.person+" ・ "+(r.dept||"-")+" ・ "+fmtFull(r.date)+(r.checkedBy?'（役員確認済: '+r.checkedBy+'）':'');
+  $("repDetailSub").textContent=r.person+" ・ "+(r.dept||"-")+" ・ "+fmtFull(r.date);
   let html='';
   html+='<div style="font-size:11px;color:var(--muted);font-weight:700;margin:0 2px 7px;">申請とのリンク／整合性チェック</div><div class="checks">';
   repChecks(r).forEach(c=>{html+='<div class="chkrow '+c[0]+'"><span class="ci">'+(c[0]==="ok"?"✓":"⚠")+'</span><span class="ck">'+esc(c[1])+'</span><span class="cv">'+esc(c[2].replace(/^✓ |^⚠ /,""))+'</span></div>';});
@@ -555,23 +588,31 @@ function openRepDetail(r){
   html+='<div class="sumbar"><span><b>自社負担</b><span class="num">'+yen(shitaBudget(r))+'</span></span><span><b>相手負担</b><span class="num">'+yen(saretaSum(r))+'</span></span><span><b>対象外</b><span class="num">'+yen(exemptSum(r))+'</span></span></div>';
   if(r.overReason)html+='<div class="preview" style="background:var(--red-soft);border-color:#E8C9C3;"><b>予算超過の理由</b>\n'+esc(r.overReason)+'</div>';
   html+='<div class="preview"><b>実際の接待内容</b>\n'+esc(r.detail||"-")+'\n\n<b>関係値の変化</b>\n'+esc(r.rel||"-")+'</div>';
+  
   $("repDetailBody").innerHTML=html;
   $("repDetailBody").querySelectorAll(".rz").forEach(img=>img.onclick=()=>openLightbox(img.src));
+  
+  // ★ 役員確認ボタンの動的生成
+  const act = $("repCheckBtns");
+  act.innerHTML = "";
+  if (r.checkedBy) {
+     act.innerHTML = '<div class="notice" style="background:var(--green-soft);color:var(--green);border-color:#CFE6DB;text-align:center;width:100%;margin:0;">✓ 役員確認完了（'+esc(r.checkedBy)+'）</div>';
+  } else {
+     act.innerHTML = '<div class="notice" style="width:100%;margin-bottom:4px;">内容の確認・チェックは宮崎嘉人・歌田修造が行ってください。</div><button class="btn-save" data-checkrep="宮崎嘉人">宮崎嘉人が確認</button><button class="btn-save" data-checkrep="歌田修造">歌田修造が確認</button>';
+     act.querySelectorAll("[data-checkrep]").forEach(b=>{
+       b.onclick=()=>{
+         r.checkedBy=b.dataset.checkrep;
+         r.checkedAt=Date.now();
+         storeSet();
+         closeAll();
+         render();
+         toast("確認を記録しました（"+r.checkedBy+"）");
+       };
+     });
+  }
+  
   $("repDetailScrim").classList.add("show");
 }
-
-document.querySelectorAll("[data-checkrep]").forEach(b=>{
-  b.onclick=()=>{
-    const r=db.reports.find(x=>x.id===currentRepId);
-    if(!r) return;
-    r.checkedBy=b.dataset.checkrep;
-    r.checkedAt=Date.now();
-    storeSet();
-    closeAll();
-    render();
-    toast("確認を記録しました（"+r.checkedBy+"）");
-  };
-});
 
 function openLightbox(src){$("lightboxImg").src=src;$("lightbox").classList.add("show");}
 $("lightbox").onclick=()=>$("lightbox").classList.remove("show");
@@ -631,7 +672,7 @@ $("a_save").onclick=()=>{
 function showNotify(title,lead,text){$("notifyTitle").textContent=title;$("notifyLead").textContent=lead;$("notifyText").textContent=text;$("notifyCopy").onclick=()=>copyText(text);$("notifyScrim").classList.add("show");}
 function budgetBlock(app){
   const ym=(app.date||"").slice(0,7),y=+ym.slice(0,4),mNum=+ym.slice(5,7);
-  if(app.dept===BUILD){const an=annualBuild(app.person,y);const remain=BUILD_ANNUAL-an;const proj=remain-app.budget;
+  if(app.dept===BUILD){const an=annualUsed(app.person,y);const remain=BUILD_ANNUAL-an;const proj=remain-app.budget;
     return "■ 予算状況（"+app.person+"／建築事業部）\n・年間予算：¥480,000\n・年間使用（建築計上）："+yen(an)+"\n・年間残："+yenS(remain)+"\n・本件使用後の見込み年間残："+yenS(proj)+"\n・（参考）"+mNum+"月の使用："+yen(monthUsed(app.person,ym));}
   return "■ 計上先："+app.dept+"（"+(app.dept==="役員"?"予算無制限":"予算設定なし")+"）\n・"+mNum+"月の使用："+yen(monthUsed(app.person,ym));
 }
