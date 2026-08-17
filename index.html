@@ -43,9 +43,11 @@
   .monthbar button:hover{color:var(--ink);}
   .monthbar .m{font-size:14px;font-weight:600;min-width:104px;text-align:center;}
   h2.sec{font-size:12px;letter-spacing:.08em;color:var(--muted);margin:22px 2px 11px;font-weight:700;display:flex;align-items:center;gap:8px;}
+  h2.sec .cnt{background:var(--line);color:var(--ink2);border-radius:20px;padding:1px 8px;font-size:11px;}
   .flow{display:flex;align-items:center;gap:6px;overflow-x:auto;padding:2px 2px 6px;-webkit-overflow-scrolling:touch;}
-  .fstage{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px 8px 11px;min-width:82px;text-align:center;cursor:pointer;box-shadow:var(--shadow-sm);position:relative;flex:none;transition:.14s;}
+  .fstage{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px 10px 11px;min-width:92px;text-align:center;cursor:pointer;box-shadow:var(--shadow-sm);position:relative;flex:none;transition:.14s;}
   .fstage:hover{border-color:var(--line2);transform:translateY(-1px);box-shadow:var(--shadow);}
+  .fstage.active-pending{border-color:#EBD9AE;}
   .ficon{font-size:22px;position:relative;display:inline-block;line-height:1;}
   .fbadge{position:absolute;top:-9px;right:-13px;background:var(--red);color:#fff;font-size:11px;font-weight:700;min-width:20px;height:20px;border-radius:11px;display:flex;align-items:center;justify-content:center;padding:0 5px;box-shadow:0 1px 4px rgba(178,58,46,.5);border:2px solid #fff;}
   .flab{font-size:11px;font-weight:700;margin-top:7px;color:var(--ink2);white-space:nowrap;}
@@ -80,6 +82,16 @@
   .pc-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));}
   .pc-bar i.over{background:var(--red);}
   .pc-sub{font-size:10.5px;color:var(--muted);margin-top:6px;}
+  .row{display:flex;gap:11px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:11px 13px;margin-bottom:8px;box-shadow:var(--shadow-sm);cursor:pointer;transition:.14s;}
+  .row:hover{border-color:var(--line2);transform:translateY(-1px);box-shadow:var(--shadow);}
+  .row .mid{flex:1;min-width:0;}
+  .row .t{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .row .s{font-size:11px;color:var(--muted);margin-top:1px;}
+  .row .amt{font-size:14.5px;font-weight:700;text-align:right;white-space:nowrap;}
+  .row .amt small{display:block;font-size:10px;color:var(--indigo);font-weight:500;}
+  .row .chev{color:var(--muted);font-size:16px;flex:none;}
+  .row .rc,.row .warn{font-size:14px;flex:none;}
+  .row .warn{color:var(--amber);}
   .pill{font-size:10px;border-radius:20px;padding:2px 9px;font-weight:700;white-space:nowrap;flex:none;}
   .pill.exec{background:var(--brass-soft);color:var(--brass);}
   .pill.build{background:var(--accent-soft);color:var(--accent2);}
@@ -130,7 +142,9 @@
   .drop:hover{border-color:var(--accent);color:var(--accent);}
   .rcpt-preview{display:flex;gap:10px;align-items:center;margin-top:8px;}
   .rcpt-preview img{width:54px;height:54px;object-fit:cover;border-radius:9px;border:1px solid var(--line2);}
-  .btn-rcpt-del{border:none;background:var(--red-soft);color:var(--red);padding:4px 8px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;}
+  .ocr-status{font-size:12px;color:var(--blue);display:flex;align-items:center;gap:6px;margin-top:6px;}
+  .spin{width:12px;height:12px;border:2px solid #cdd;border-top-color:var(--blue);border-radius:50%;animation:sp .7s linear infinite;}
+  @keyframes sp{to{transform:rotate(360deg)}}
   .preview{background:#F5F7F9;border:1px solid var(--line);border-radius:13px;padding:13px 15px;font-size:12.5px;white-space:pre-wrap;line-height:1.75;margin:6px 0 12px;}
   .preview.green{background:var(--green-soft);border-color:#CFE6DB;}
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:26px;font-size:13px;box-shadow:var(--shadow);z-index:120;opacity:0;transition:.25s;}
@@ -176,16 +190,26 @@
 </head>
 <body>
 
-<!-- ログイン画面 -->
-<div class="scrim" id="loginScrim" style="z-index: 9999; background: var(--bg);">
-  <div class="modal">
-    <h3>接待交際費 申請・報告システム</h3>
-    <div class="lead">利用するにはログインしてください。</div>
-    <div class="fld"><label>メールアドレス</label><input type="email" id="loginEmail" placeholder="morita@example.com"></div>
-    <div class="fld"><label>パスワード</label><input type="password" id="loginPass"></div>
-    <div class="modalbtns"><button class="btn-save" id="loginBtn">ログイン</button></div>
+<!-- ▼ ログイン画面 ▼ -->
+<div class="scrim show" id="loginScrim" style="z-index: 999; background: var(--bg);">
+  <div class="modal" style="max-width: 360px; text-align: center;">
+    <h3>株式会社想歩</h3>
+    <div class="lead">接待交際費システムにログイン</div>
+    <div class="fld" style="text-align: left;">
+      <label>メールアドレス</label>
+      <input type="email" id="loginEmail" placeholder="メールアドレス">
+    </div>
+    <div class="fld" style="text-align: left; margin-bottom: 20px;">
+      <label>パスワード</label>
+      <input type="password" id="loginPassword" placeholder="パスワード">
+    </div>
+    <div class="modalbtns">
+      <button class="btn-save" id="loginBtn" style="width: 100%;">ログイン</button>
+    </div>
+    <div id="loginError" style="color: var(--red); font-size: 12px; margin-top: 10px; display: none;"></div>
   </div>
 </div>
+<!-- ▲ ログイン画面ここまで ▲ -->
 
 <div class="appbar"><div class="appbar-in">
   <div><div class="eyebrow">株式会社想歩</div><h1>接待交際費 申請・報告システム</h1></div>
@@ -206,9 +230,9 @@
     <div class="farrow">›</div>
     <div class="fstage" data-stage="approved"><div class="ficon">✅<span class="fbadge hide" id="fb-approved">0</span></div><div class="flab">承認済み</div><div class="fcount">報告待ち</div></div>
     <div class="farrow">›</div>
-    <div class="fstage" data-stage="checking"><div class="ficon">👀<span class="fbadge hide" id="fb-checking">0</span></div><div class="flab">報告確認</div><div class="fcount">役員チェック</div></div>
+    <div class="fstage" data-stage="repcheck"><div class="ficon">🔍<span class="fbadge hide" id="fb-repcheck">0</span></div><div class="flab">報告内容確認</div><div class="fcount">確認待ち</div></div>
     <div class="farrow">›</div>
-    <div class="fstage" data-stage="completed"><div class="ficon">📗</div><div class="flab">完了済み</div><div class="fcount done" id="fc-completed">0件</div></div>
+    <div class="fstage" data-stage="done"><div class="ficon">🗄️</div><div class="flab">完了済み</div><div class="fcount done" id="fc-done">0件</div></div>
     <div class="farrow">／</div>
     <div class="fstage" data-stage="rejected"><div class="ficon">↩️<span class="fbadge hide" id="fb-rejected">0</span></div><div class="flab">差し戻し</div><div class="fcount">要修正</div></div>
   </div>
@@ -220,15 +244,14 @@
   <div id="people"></div>
 
   <div class="toolbar">
-    <button class="primary" id="syncNow">🔄 データを強制同期</button>
-    <button id="exportXlsx">📊 Excel書き出し</button>
+    <button class="primary" id="exportXlsx">📊 Excel書き出し</button>
     <button id="exportCsv">CSV</button>
     <button id="setUrl">🔗 システムURL</button>
   </div>
 
   <footer>
-    データはSupabaseにより全対象者で自動共有・蓄積されます。<br>
-    役員＝予算無制限／建築事業部＝年間48万円/人／AI事業部＝予算設定なし。通知は半自動（LINE文コピー）。
+    データは全対象者で共有・蓄積されます。予算計上は「接待した（自社負担）」のみ。<br>
+    役員＝予算無制限／建築事業部＝年間¥56,000/人／AI事業部＝予算設定なし。通知は半自動（LINE文コピー）。
   </footer>
 </div>
 
@@ -243,7 +266,7 @@
   <div class="fld hide" id="a_otherWrap"><label>氏名（その他）<span class="req">*</span></label><input type="text" id="a_other" placeholder="氏名を入力"></div>
   <div class="grid2">
     <div class="fld"><label>接待予定日 <span class="req">*</span></label><input type="date" id="a_date"></div>
-    <div class="fld"><label>予算（円）<span class="req">*</span></label><input type="number" id="a_budget" min="0" placeholder="20000" step="1000"></div>
+    <div class="fld"><label>予算（円）<span class="req">*</span></label><input type="number" id="a_budget" placeholder="20000" step="1000"></div>
   </div>
   <div class="fld"><label>誰と（相手・会社名）<span class="req">*</span></label><input type="text" id="a_partner" placeholder="例）○○建設 田中様"></div>
   <div class="grid2">
@@ -298,7 +321,7 @@
   <h3>報告の詳細</h3>
   <div class="lead" id="repDetailSub"></div>
   <div id="repDetailBody"></div>
-  <div class="modalbtns" id="repCheckBtns"></div>
+  <div class="modalbtns" id="repDetailActions"></div>
   <div class="modalbtns"><button class="btn-cancel" data-close>閉じる</button></div>
 </div></div>
 
@@ -341,11 +364,19 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const SUPABASE_URL = "https://jahqzvuzbczdehxwrvyj.supabase.co";
-const SUPABASE_KEY = "sb_publishable_HQqa4lO_rEAb-QtCowyZRA__JvVALrz";
+// ==========================================
+// ▼※※※ ここを書き換える ※※※▼
+// ==========================================
+const SUPABASE_URL = "https://xxxxxxxxxxxx.supabase.co";
+const SUPABASE_KEY = "ey...（長い文字列をここに貼り付け）...";
+// ==========================================
+// ▲※※※ ここを書き換える ※※※▲
+// ==========================================
 
-const spClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+const KEY="soho-settai-v12";
+const DEFAULT_URL="https://soho-settai.vercel.app/";
 const PEOPLE=[{n:"宮崎嘉人",d:"役員"},{n:"歌田修造",d:"役員"},{n:"宮崎誠人",d:"建築事業部"},{n:"浅野司",d:"建築事業部"},{n:"森田諒也",d:"AI事業部"},{n:"金井翔",d:"AI事業部"}];
 const DEPTS=["役員","建築事業部","AI事業部"];
 const BUILD="建築事業部";const BUILD_ANNUAL=560000;
@@ -355,22 +386,82 @@ const KUBUN=[
   {v:"手土産",cat:"手土産",label:"",t:"手土産"},{v:"ゴルフ",cat:"ゴルフ",label:"",t:"ゴルフ"},{v:"その他",cat:"その他",label:"",t:"その他"}
 ];
 let db={applications:[],reports:[],systemUrl:""};
-let cur=new Date();
+let cur=new Date(2026,7,1);
 let rform={items:[]};
-let decisionId=null,decisionMode=null,editingAppId=null,currentAppBudget=null,currentRepId=null;
+let decisionId=null,decisionMode=null,editingAppId=null,currentAppBudget=null;
 
 const $=id=>document.getElementById(id);
 const yen=n=>"¥"+Math.round(n||0).toLocaleString("ja-JP");
 const yenS=n=>(n<0?"−":"")+"¥"+Math.abs(Math.round(n||0)).toLocaleString("ja-JP");
 const mkey=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
 const esc=s=>(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const WD=["日","月","火","水","木","金","土"];
 const dow=s=>{if(!s)return"";const d=new Date(s+"T00:00:00");return isNaN(d)?"":WD[d.getDay()];};
 const fmtFull=s=>s?(s+"（"+dow(s)+"）"):"-";
 const fmtShort=s=>s?((s).slice(5).replace("-","/")+"（"+dow(s)+"）"):"-";
 const homeDept=name=>{const p=PEOPLE.find(x=>x.n===name);return p?p.d:"AI事業部";};
 const deptClass=d=>d==="役員"?"exec":d==="建築事業部"?"build":d==="AI事業部"?"ai":"other";
-const deptNote=d=>d==="役員"?"予算無制限":d==="建築事業部"?"年間 48万円/人":d==="AI事業部"?"予算設定なし":"";
+const deptNote=d=>d==="役員"?"予算無制限":d==="建築事業部"?("年間 "+yen(BUILD_ANNUAL)+"/人"):d==="AI事業部"?"予算設定なし":"";
+
+// ▼ ログイン処理 ▼
+$("loginBtn").onclick = async () => {
+  $("loginBtn").textContent = "ログイン中...";
+  const email = $("loginEmail").value;
+  const password = $("loginPassword").value;
+  
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+  
+  if (error) {
+    $("loginError").textContent = "ログイン失敗: メールアドレスかパスワードが違います";
+    $("loginError").style.display = "block";
+    $("loginBtn").textContent = "ログイン";
+  } else {
+    $("loginScrim").classList.remove("show");
+    load(); // ログイン成功時に読み込み
+  }
+};
+
+async function checkSession() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session) {
+    $("loginScrim").classList.remove("show");
+    load();
+  }
+}
+checkSession();
+
+// ▼ データの読み込み処理（Supabase連携） ▼
+async function storeGet(key) {
+  try {
+    const { data, error } = await supabaseClient.from('settai_db').select('data').eq('id', 1).single();
+    if (error) {
+      if (error.code === 'PGRST116') return null; // まだデータがない場合
+      throw error;
+    }
+    return data ? data.data : null;
+  } catch (e) {
+    console.error("読込エラー:", e);
+    return null;
+  }
+}
+
+// ▼ データの保存処理（Supabase連携） ▼
+async function storeSet() {
+  try {
+    const { error } = await supabaseClient.from('settai_db').update({ data: db }).eq('id', 1);
+    if(error) throw error;
+  } catch (e) {
+    console.error("保存エラー:", e);
+  }
+}
+
+function migrate(){(db.applications||[]).forEach(a=>{if(a.dept==="役員用")a.dept="役員";});(db.reports||[]).forEach(r=>{if(r.dept==="役員用")r.dept="役員";if(!r.status)r.status="完了";});if(!db.systemUrl)db.systemUrl=DEFAULT_URL;}
+async function load(){
+  let d=await storeGet(KEY);
+  if(d)db=Object.assign({applications:[],reports:[],systemUrl:""},d);
+  migrate();storeSet();render();
+}
 
 const sumItems=(r,f)=>(r.items||[]).filter(f).reduce((s,i)=>s+(+i.amt||0),0);
 const shitaBudget=r=>sumItems(r,i=>i.dir==="した"&&!i.exempt);
@@ -378,71 +469,18 @@ const saretaSum=r=>sumItems(r,i=>i.dir==="された");
 const exemptSum=r=>sumItems(r,i=>i.dir==="した"&&i.exempt);
 const inMonth=(x,ym)=>(x.date||"").slice(0,7)===ym;
 const inYear=(x,y)=>(x.date||"").slice(0,4)===String(y);
-
-// === 認証とログイン処理 ===
-spClient.auth.onAuthStateChange((event, session) => {
-  if (session) {
-    $("loginScrim").classList.remove("show"); // ログイン成功で画面を閉じる
-    loadDataFromSupabase(); // 新しいテーブルからデータを取得
-  } else {
-    $("loginScrim").classList.add("show"); // 未ログインなら画面を出す
-  }
-});
-
-$("loginBtn").onclick = async () => {
-  const email = $("loginEmail").value.trim();
-  const password = $("loginPass").value;
-  
-  // ログイン処理を実行
-  const { data, error } = await spClient.auth.signInWithPassword({ email, password });
-  
-  // エラーがあれば、英語の詳細なエラーメッセージを直接画面に出す
-  if (error) {
-    alert("【エラー詳細】\n" + error.message);
-  } else {
-    // 成功した場合も分かりやすく出す
-    alert("ログインに成功しました！データを読み込みます。");
-  }
-};
-
-// === データベースのフォーマット変換 ===
-function mapApp(a) {
-  return { id: a.id, person: a.person, dept: a.dept, date: a.date, budget: a.budget, partner: a.partner, place: a.place, rounds: a.rounds, purpose: a.purpose, status: a.status, approvedBy: a.approved_by, approvedNote: a.approved_note, decidedBy: a.decided_by, rejectNote: a.reject_note, createdAt: new Date(a.created_at).getTime() };
-}
-function mapRep(r) {
-  return { id: r.id, person: r.person, dept: r.dept, appId: r.app_id, reason: r.reason, date: r.date, items: r.items, appBudget: r.app_budget, overReason: r.over_reason, detail: r.detail, rel: r.rel, checkedBy: r.checked_by, checkedAt: r.checked_at, createdAt: new Date(r.created_at).getTime() };
-}
-
-// === データ読み込み処理 ===
-async function loadDataFromSupabase() {
-  try {
-    const { data: apps, error: err1 } = await spClient.from('applications').select('*');
-    const { data: reps, error: err2 } = await spClient.from('reports').select('*');
-    
-    if (err1) throw err1;
-    if (err2) throw err2;
-
-    db.applications = (apps || []).map(mapApp);
-    db.reports = (reps || []).map(mapRep);
-    
-    render();
-  } catch (error) {
-    console.error(error);
-    toast("データの取得に失敗しました");
-  }
-}
-
 function reportsOf(name,ym){return db.reports.filter(r=>r.person===name&&inMonth(r,ym));}
 function monthUsed(name,ym){return reportsOf(name,ym).reduce((s,r)=>s+shitaBudget(r),0);}
 function monthSareta(name,ym){return reportsOf(name,ym).reduce((s,r)=>s+saretaSum(r),0);}
 function monthExempt(name,ym){return reportsOf(name,ym).reduce((s,r)=>s+exemptSum(r),0);}
-function annualUsed(name,y){return db.reports.filter(r=>r.person===name&&inYear(r,y)).reduce((s,r)=>s+shitaBudget(r),0);}
+function annualBuild(name,y){return db.reports.filter(r=>r.person===name&&r.dept===BUILD&&inYear(r,y)).reduce((s,r)=>s+shitaBudget(r),0);}
+function annualTotal(name,y){return db.reports.filter(r=>r.person===name&&inYear(r,y)).reduce((s,r)=>s+shitaBudget(r),0);}
 function monthApps(name,ym){return db.applications.filter(a=>a.person===name&&inMonth(a,ym));}
 function pendingBy(name,ym){return db.applications.filter(a=>a.person===name&&a.status==="承認待ち"&&inMonth(a,ym)).length;}
 function deptMonthUsed(dep,ym){return db.reports.filter(r=>r.dept===dep&&inMonth(r,ym)).reduce((s,r)=>s+shitaBudget(r),0);}
 function allMonthUsed(ym){return db.reports.filter(r=>inMonth(r,ym)).reduce((s,r)=>s+shitaBudget(r),0);}
 function allMonthSareta(ym){return db.reports.filter(r=>inMonth(r,ym)).reduce((s,r)=>s+saretaSum(r),0);}
-function urlLine(){return "\n▼申請システム：\n"+(db.systemUrl||"https://my-claude-app-orcin.vercel.app/");}
+function urlLine(){return "\n▼申請システム："+(db.systemUrl||DEFAULT_URL);}
 
 function repChecks(r){
   const app=r.appId?db.applications.find(a=>a.id===r.appId):null;
@@ -460,32 +498,21 @@ function repHasIssue(r){return repChecks(r).some(c=>c[0]==="warn");}
 function renderFlow(){
   const cPend=db.applications.filter(a=>a.status==="承認待ち").length;
   const cAppr=db.applications.filter(a=>a.status==="承認済").length;
+  const cCheck=db.reports.filter(r=>(r.status||"完了")==="確認待ち").length;
+  const cDone=db.reports.filter(r=>(r.status||"完了")==="完了").length;
   const cRej=db.applications.filter(a=>a.status==="却下").length;
-  const cCheck=db.reports.filter(r=>!r.checkedBy).length;
-  const cComp=db.reports.filter(r=>r.checkedBy).length;
-
-  setBadge("fb-pending",cPend);
-  setBadge("fb-approved",cAppr);
-  setBadge("fb-rejected",cRej);
-  setBadge("fb-checking",cCheck);
-  $("fc-completed").textContent=cComp+"件";
+  setBadge("fb-pending",cPend);setBadge("fb-approved",cAppr);setBadge("fb-repcheck",cCheck);setBadge("fb-rejected",cRej);
+  $("fc-done").textContent=cDone+"件";
 }
 function setBadge(id,n){const el=$(id);if(n>0){el.textContent=n;el.classList.remove("hide");}else{el.classList.add("hide");}}
 document.querySelectorAll(".fstage").forEach(el=>el.onclick=()=>openFlow(el.dataset.stage));
-
 function openFlow(stage){
   let title,lead,items=[],type="app";
   if(stage==="pending"){title="申請中（承認待ち）";lead="承認者（宮崎嘉人・歌田修造）の承認待ちです。タップで承認/却下できます。";items=db.applications.filter(a=>a.status==="承認待ち");}
-  else if(stage==="approved"){title="承認済み（報告待ち）";lead="承認済みの申請です。接待完了後に「この申請で報告する」をタップしてください。";items=db.applications.filter(a=>a.status==="承認済");}
+  else if(stage==="approved"){title="承認済み（報告待ち）";lead="承認済みです。タップすると、その申請の報告を作成できます。";items=db.applications.filter(a=>a.status==="承認済");}
+  else if(stage==="repcheck"){title="報告内容の確認（確認待ち）";lead="宮崎嘉人・歌田修造が報告内容を確認します。タップして確認/差し戻し。";items=db.reports.filter(r=>(r.status||"完了")==="確認待ち");type="rep";}
   else if(stage==="rejected"){title="差し戻し（却下）";lead="却下された申請です。タップで編集・再申請、または削除できます。";items=db.applications.filter(a=>a.status==="却下");}
-  else if(stage==="checking"){
-    title="報告確認（役員チェック）";lead="報告済みのデータです。宮崎嘉人・歌田修造の確認が必要です。";
-    items=db.reports.filter(r=>!r.checkedBy);type="rep";
-  }
-  else{
-    title="完了済み（データ蓄積）";lead="役員確認まで全て完了したデータです。タップで詳細を確認できます。";
-    items=db.reports.filter(r=>r.checkedBy);type="rep";
-  }
+  else{title="完了済み";lead="承認→報告→内容確認まで完了した記録です（申請・報告データを保管）。";items=db.reports.filter(r=>(r.status||"完了")==="完了");type="rep";}
   items.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
   $("flowTitle").textContent=title;$("flowLead").textContent=lead;
   const body=$("flowBody");
@@ -495,21 +522,13 @@ function openFlow(stage){
     const div=document.createElement("div");div.className="mini";
     if(type==="app"){
       const sc={"承認待ち":"pending","承認済":"approved","却下":"rejected","報告済":"done"}[x.status];
-      const isApproved = x.status === "承認済";
-      div.innerHTML='<span class="st '+sc+'">'+x.status+'</span><span class="pill '+deptClass(x.dept)+'">'+esc(x.dept)+'</span><div class="mm"><div class="mt">'+esc(x.person+"｜"+x.partner)+'</div><div class="ms">'+fmtShort(x.date)+'</div></div><div class="ma num">'+yen(x.budget)+'</div>'+(isApproved?'<button class="btn-save" style="font-size:11px;padding:4px 8px;margin-left:6px;flex:none;">報告する</button>':'');
-      div.onclick=(e)=>{
-        if(isApproved && e.target.tagName==='BUTTON'){
-          closeAll();
-          openReportWithApp(x);
-        } else {
-          closeAll();
-          openAppDetail(x.id);
-        }
-      };
+      div.innerHTML='<span class="st '+sc+'">'+x.status+'</span><span class="pill '+deptClass(x.dept)+'">'+esc(x.dept)+'</span><div class="mm"><div class="mt">'+esc(x.person+"｜"+x.partner)+'</div><div class="ms">'+fmtShort(x.date)+'</div></div><div class="ma num">'+yen(x.budget)+'</div>';
+      if(stage==="approved"){div.onclick=()=>{closeAll();openReportFor(x);};}
+      else{div.onclick=()=>{closeAll();openAppDetail(x.id);};}
     }else{
       const app=x.appId?db.applications.find(a=>a.id===x.appId):null;const issue=repHasIssue(x);
-      const chkText=x.checkedBy?' ・ 済:'+x.checkedBy:'';
-      div.innerHTML='<span class="st '+(x.appId?"done":"noapp")+'">'+(x.appId?"報告":"事後")+'</span><span class="pill '+deptClass(x.dept)+'">'+esc(x.dept||"-")+'</span><div class="mm"><div class="mt">'+esc(x.person+"｜"+(app?app.partner:(x.items[0]&&x.items[0].vendor)||"接待"))+'</div><div class="ms">'+fmtShort(x.date)+(issue?' ・ ⚠要確認':'')+esc(chkText)+'</div></div><div class="ma num">'+yen(shitaBudget(x))+'</div>';
+      const check=(x.status||"完了")==="確認待ち";
+      div.innerHTML='<span class="st '+(check?"pending":"done")+'">'+(check?"確認待ち":"完了")+'</span><span class="pill '+deptClass(x.dept)+'">'+esc(x.dept||"-")+'</span><div class="mm"><div class="mt">'+esc(x.person+"｜"+(app?app.partner:(x.items[0]&&x.items[0].vendor)||"接待"))+'</div><div class="ms">'+fmtShort(x.date)+(issue?' ・ ⚠要確認':'')+'</div></div><div class="ma num">'+yen(shitaBudget(x))+'</div>';
       div.onclick=()=>{closeAll();openRepDetail(x);};
     }
     body.appendChild(div);
@@ -539,18 +558,13 @@ function render(){
     html+='</div></div>';wrap.insertAdjacentHTML("beforeend",html);}
   wrap.querySelectorAll("[data-person]").forEach(el=>el.onclick=()=>openPerson(el.dataset.person));
 }
-
 function personCard(name,dept){
   const ym=mkey(cur),y=cur.getFullYear();const used=monthUsed(name,ym);const pend=pendingBy(name,ym);
-  const an=annualUsed(name,y);
   let extra="";
-  if(dept===BUILD){
-    const bal=BUILD_ANNUAL-an;const pct=Math.min(100,an/BUILD_ANNUAL*100);
+  if(dept===BUILD){const an=annualBuild(name,y);const bal=BUILD_ANNUAL-an;const pct=Math.min(100,an/BUILD_ANNUAL*100);
     extra='<div class="pc-bar"><i class="'+(an>BUILD_ANNUAL?'over':'')+'" style="width:'+(an>BUILD_ANNUAL?100:pct)+'%"></i></div>'+
-      '<div class="pc-sub">年間 <span class="num">'+yen(an)+'</span> / <span class="num">¥560,000</span> 残 <span class="num">'+yenS(bal)+'</span></div>';
-  }else{
-    extra='<div class="pc-sub">年間使用額：<span class="num">'+yen(an)+'</span> (予算なし)'+(pend?' ・ 承認待ち '+pend:'')+'</div>';
-  }
+      '<div class="pc-sub">年間 <span class="num">'+yen(an)+'</span> / <span class="num">'+yen(BUILD_ANNUAL)+'</span> 残 <span class="num">'+yenS(bal)+'</span></div>';
+  }else{const an=annualTotal(name,y);extra='<div class="pc-sub">予算：'+(dept==="役員"?"無制限":"設定なし")+' ・ 年間 <span class="num">'+yen(an)+'</span>'+(pend?' ・ 承認待ち '+pend:'')+'</div>';}
   return '<div class="pcard" data-person="'+esc(name)+'"><div class="pc-top"><span class="pc-name">'+esc(name)+'</span><span class="chev">›</span></div>'+
     '<div class="pc-amt"><span class="num">'+yen(used)+'</span><span class="pc-cap">今月の自社負担</span></div>'+extra+'</div>';
 }
@@ -563,16 +577,9 @@ function openPerson(name){
     '<div class="stat"><div class="k">報告件数</div><div class="v num">'+reps.length+'<span style="font-size:12px"> 件</span></div></div>'+
     '<div class="stat"><div class="k">使用額（自社負担）</div><div class="v num">'+yen(used)+'</div></div>'+
     '<div class="stat"><div class="k">被接待（相手負担）</div><div class="v num">'+yen(sa)+'</div></div>'+
-    '<div class="stat"><div class="k">対象外</div><div class="v num">'+yen(ex)+'</div></div></div>';
-    
-  const an=annualUsed(name,y);
-  if(dept===BUILD){
-    const bal=BUILD_ANNUAL-an;const pct=Math.min(100,an/BUILD_ANNUAL*100);
-    html+='<div style="background:#F5F7F9;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;"><div style="font-size:11px;color:var(--muted);font-weight:600;">建築事業部 年間予算</div><div style="display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 8px;"><span class="num" style="font-size:19px;font-weight:700">'+yen(an)+' <span style="font-size:12px;color:var(--muted)">/ ¥560,000</span></span><span class="num" style="font-size:12px;color:var(--muted)">残 '+yenS(bal)+'</span></div><div class="pc-bar"><i class="'+(an>BUILD_ANNUAL?'over':'')+'" style="width:'+(an>BUILD_ANNUAL?100:pct)+'%"></i></div></div>';
-  } else {
-    html+='<div style="background:#F5F7F9;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;"><div style="font-size:11px;color:var(--muted);font-weight:600;">年間使用額（累計）</div><div style="display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 0;"><span class="num" style="font-size:19px;font-weight:700">'+yen(an)+'</span><span style="font-size:12px;color:var(--muted)">予算設定なし</span></div></div>';
-  }
-  
+    '<div class="stat"><div class="k">年間使用（自社負担）</div><div class="v num">'+yen(annualTotal(name,y))+'</div></div></div>';
+  if(dept===BUILD){const an=annualBuild(name,y);const bal=BUILD_ANNUAL-an;const pct=Math.min(100,an/BUILD_ANNUAL*100);
+    html+='<div style="background:#F5F7F9;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;"><div style="font-size:11px;color:var(--muted);font-weight:600;">建築事業部 年間予算</div><div style="display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 8px;"><span class="num" style="font-size:19px;font-weight:700">'+yen(an)+' <span style="font-size:12px;color:var(--muted)">/ '+yen(BUILD_ANNUAL)+'</span></span><span class="num" style="font-size:12px;color:var(--muted)">残 '+yenS(bal)+'</span></div><div class="pc-bar"><i class="'+(an>BUILD_ANNUAL?'over':'')+'" style="width:'+(an>BUILD_ANNUAL?100:pct)+'%"></i></div></div>';}
   html+='<div style="font-size:11px;color:var(--muted);font-weight:700;margin:4px 2px 8px;">申請状況（'+apps.length+'件）</div>';
   if(!apps.length)html+='<div class="empty">この月の申請はありません。</div>';
   else apps.sort((a,b)=>b.createdAt-a.createdAt).forEach(a=>{const sc={"承認待ち":"pending","承認済":"approved","却下":"rejected","報告済":"done"}[a.status];
@@ -587,7 +594,6 @@ function openPerson(name){
 }
 
 function openRepDetail(r){
-  currentRepId=r.id;
   const app=r.appId?db.applications.find(a=>a.id===r.appId):null;
   $("repDetailSub").textContent=r.person+" ・ "+(r.dept||"-")+" ・ "+fmtFull(r.date);
   let html='';
@@ -603,31 +609,22 @@ function openRepDetail(r){
   html+='<div class="sumbar"><span><b>自社負担</b><span class="num">'+yen(shitaBudget(r))+'</span></span><span><b>相手負担</b><span class="num">'+yen(saretaSum(r))+'</span></span><span><b>対象外</b><span class="num">'+yen(exemptSum(r))+'</span></span></div>';
   if(r.overReason)html+='<div class="preview" style="background:var(--red-soft);border-color:#E8C9C3;"><b>予算超過の理由</b>\n'+esc(r.overReason)+'</div>';
   html+='<div class="preview"><b>実際の接待内容</b>\n'+esc(r.detail||"-")+'\n\n<b>関係値の変化</b>\n'+esc(r.rel||"-")+'</div>';
-  
+  if(app){html+='<div class="preview green"><b>【事前申請 内容】</b>\n・申請者：'+esc(app.person)+'\n・接待予定日：'+esc(fmtFull(app.date))+'\n・相手：'+esc(app.partner)+'\n・場所：'+esc(app.place||"-")+'\n・何次会：'+esc(app.rounds)+'\n・申請予算：'+yen(app.budget)+'\n・目的：'+esc(app.purpose)+'\n・承認：'+esc(app.approvedBy||"-")+(app.approvedNote?'（'+esc(app.approvedNote)+'）':'')+'</div>';}
+  const st=r.status||"完了";
+  html+='<div class="preview" style="'+(st==="確認待ち"?'background:var(--amber-soft);border-color:#EBDBB4;':'background:var(--green-soft);border-color:#CFE6DB;')+'"><b>ステータス</b>\n'+(st==="確認待ち"?"報告内容の確認待ち（宮崎・歌田が確認します）":"完了"+(r.confirmedBy?"（確認："+esc(r.confirmedBy)+(r.confirmNote?" ／ "+esc(r.confirmNote):"")+"）":""))+'</div>';
   $("repDetailBody").innerHTML=html;
   $("repDetailBody").querySelectorAll(".rz").forEach(img=>img.onclick=()=>openLightbox(img.src));
-  
-  const act = $("repCheckBtns");
-  act.innerHTML = "";
-  if (r.checkedBy) {
-     act.innerHTML = '<div class="notice" style="background:var(--green-soft);color:var(--green);border-color:#CFE6DB;text-align:center;width:100%;margin:0;">✓ 役員確認完了（'+esc(r.checkedBy)+'）</div>';
-  } else {
-     act.innerHTML = '<div class="notice" style="width:100%;margin-bottom:4px;">内容の確認・チェックは宮崎嘉人・歌田修造が行ってください。</div><button class="btn-save" data-checkrep="宮崎嘉人">宮崎嘉人が確認</button><button class="btn-save" data-checkrep="歌田修造">歌田修造が確認</button>';
-     act.querySelectorAll("[data-checkrep]").forEach(b=>{
-       b.onclick = async () => {
-         r.checkedBy=b.dataset.checkrep;
-         const { error } = await spClient.from('reports').update({ checked_by: r.checkedBy, checked_at: new Date().toISOString() }).eq('id', r.id);
-         if(error){ toast("エラーが発生しました"); return; }
-         closeAll();
-         toast("確認を記録しました（"+r.checkedBy+"）");
-         loadDataFromSupabase();
-       };
-     });
+  const act=$("repDetailActions");act.innerHTML="";
+  if(st==="確認待ち"){
+    const ok=document.createElement("button");ok.className="btn-ok";ok.textContent="報告を確認（完了）";ok.onclick=()=>{closeAll();openDecision(r.id,"confirm");};act.appendChild(ok);
+    const sb=document.createElement("button");sb.className="btn-ng";sb.textContent="報告を差し戻す";sb.onclick=()=>{closeAll();openDecision(r.id,"sendback");};act.appendChild(sb);
   }
-  
+  const del=document.createElement("button");del.className="btn-del";del.textContent="この報告を削除";
+  del.onclick=()=>{if(del.dataset.armed){removeReport(r.id);}else{del.dataset.armed="1";del.textContent="もう一度タップで削除";setTimeout(()=>{del.dataset.armed="";del.textContent="この報告を削除";},3000);}};
+  act.appendChild(del);
   $("repDetailScrim").classList.add("show");
 }
-
+function removeReport(id){const r=db.reports.find(x=>x.id===id);if(!r)return;const app=r.appId?db.applications.find(a=>a.id===r.appId):null;if(app)app.status="承認済";db.reports=db.reports.filter(x=>x.id!==id);storeSet();closeAll();render();toast(app?"報告を削除しました（承認済み・報告待ちに戻しました）":"報告を削除しました");}
 function openLightbox(src){$("lightboxImg").src=src;$("lightbox").classList.add("show");}
 $("lightbox").onclick=()=>$("lightbox").classList.remove("show");
 
@@ -638,43 +635,36 @@ function openAppDetail(id){
   if(a.approvedNote)t+="\n承認備考："+a.approvedNote;if(a.rejectNote)t+="\n却下備考："+a.rejectNote;
   $("appDetailText").textContent=t;
   const act=$("appDetailActions");act.innerHTML="";
-  if(a.status==="承認済"){
-    const rBtn=document.createElement("button");rBtn.className="btn-save";rBtn.textContent="この申請で報告する";
-    rBtn.onclick=()=>{closeAll();openReportWithApp(a);};act.appendChild(rBtn);
-  }
   if(a.status!=="報告済"){const e=document.createElement("button");e.className="btn-edit";e.textContent="編集";e.onclick=()=>openApplyEdit(a);act.appendChild(e);}
   if(a.status==="承認待ち"){
     const ok=document.createElement("button");ok.className="btn-ok";ok.textContent="承認する";ok.onclick=()=>{closeAll();openDecision(a.id,"approve");};act.appendChild(ok);
     const ng=document.createElement("button");ng.className="btn-ng";ng.textContent="却下する";ng.onclick=()=>{closeAll();openDecision(a.id,"reject");};act.appendChild(ng);
   }
-  if(a.status==="承認待ち"||a.status==="却下"||a.status==="承認済"){
+  if(a.status==="承認待ち"||a.status==="却下"){
     const del=document.createElement("button");del.className="btn-del";del.textContent="削除";
     del.onclick=()=>{if(del.dataset.armed){removeApp(a.id);}else{del.dataset.armed="1";del.textContent="もう一度タップで削除";setTimeout(()=>{del.dataset.armed="";del.textContent="削除";},3000);}};
     act.appendChild(del);
   }
   $("appDetailScrim").classList.add("show");
 }
+function removeApp(id){db.applications=db.applications.filter(a=>a.id!==id);storeSet();closeAll();render();toast("申請を削除しました");}
 
-async function removeApp(id){
-  await spClient.from('applications').delete().eq('id', id);
-  closeAll(); toast("申請を削除しました"); loadDataFromSupabase();
-}
-
-function openDecision(id,mode){decisionId=id;decisionMode=mode;const a=db.applications.find(x=>x.id===id);
-  $("decisionTitle").textContent=mode==="approve"?"承認する":"却下する";
-  $("decisionInfo").textContent=a?(a.person+"｜"+a.partner+"｜"+fmtFull(a.date)+"｜予算"+yen(a.budget)):"";
+function openDecision(id,mode){decisionId=id;decisionMode=mode;
+  const T={approve:"承認する",reject:"却下する",confirm:"報告内容を確認する",sendback:"報告を差し戻す"};
+  $("decisionTitle").textContent=T[mode]||"確認";
+  if(mode==="approve"||mode==="reject"){const a=db.applications.find(x=>x.id===id);$("decisionInfo").textContent=a?(a.person+"｜"+a.partner+"｜"+fmtFull(a.date)+"｜予算"+yen(a.budget)):"";}
+  else{const r=db.reports.find(x=>x.id===id);const app=r&&r.appId?db.applications.find(a=>a.id===r.appId):null;$("decisionInfo").textContent=r?(r.person+"｜"+(app?app.partner:(r.items[0]&&r.items[0].vendor)||"接待")+"｜"+fmtFull(r.date)+"｜自社負担"+yen(shitaBudget(r))):"";}
   $("decisionNote").value="";$("decisionScrim").classList.add("show");}
-
-document.querySelectorAll("[data-dec]").forEach(b=>b.onclick = async () => {
-  const a=db.applications.find(x=>x.id===decisionId);if(!a)return;
+document.querySelectorAll("[data-dec]").forEach(b=>b.onclick=()=>{
   const name=b.dataset.dec;const note=$("decisionNote").value.trim();
-  if(decisionMode==="approve"){
-    await spClient.from('applications').update({ status: '承認済', approved_by: name, approved_note: note }).eq('id', decisionId);
-    closeAll(); showApprovalNotify(a); loadDataFromSupabase();
-  }
-  else{
-    await spClient.from('applications').update({ status: '却下', decided_by: name, reject_note: note }).eq('id', decisionId);
-    closeAll(); showRejectNotify(a); loadDataFromSupabase();
+  if(decisionMode==="approve"||decisionMode==="reject"){
+    const a=db.applications.find(x=>x.id===decisionId);if(!a)return;
+    if(decisionMode==="approve"){a.status="承認済";a.approvedBy=name;a.approvedNote=note;a.decidedAt=Date.now();storeSet();render();closeAll();showApprovalNotify(a);}
+    else{a.status="却下";a.decidedBy=name;a.rejectNote=note;a.decidedAt=Date.now();storeSet();render();closeAll();showRejectNotify(a);}
+  }else{
+    const r=db.reports.find(x=>x.id===decisionId);if(!r)return;
+    if(decisionMode==="confirm"){r.status="完了";r.confirmedBy=name;r.confirmNote=note;r.confirmedAt=Date.now();storeSet();render();closeAll();showConfirmNotify(r);}
+    else{const app=r.appId?db.applications.find(a=>a.id===r.appId):null;const snapshot={person:r.person,app:app,note:note,by:name};if(app)app.status="承認済";db.reports=db.reports.filter(x=>x.id!==r.id);storeSet();render();closeAll();showSendbackNotify(snapshot);}
   }
 });
 
@@ -687,30 +677,19 @@ function openApplyEdit(a){editingAppId=a.id;$("a_title").textContent="事前申�
   if(PEOPLE.find(x=>x.n===a.person)){$("a_person").value=a.person;$("a_otherWrap").classList.add("hide");}else{$("a_person").value="__other__";$("a_otherWrap").classList.remove("hide");$("a_other").value=a.person;}
   $("a_dept").value=a.dept||homeDept(a.person);$("a_date").value=a.date;$("a_budget").value=a.budget;$("a_partner").value=a.partner;$("a_place").value=a.place||"";$("a_rounds").value=a.rounds;$("a_purpose").value=a.purpose;
   closeAll();$("applyScrim").classList.add("show");}
-
-$("a_save").onclick = async () => {
+$("a_save").onclick=()=>{
   let person=$("a_person").value;if(person==="__other__"){person=$("a_other").value.trim();if(!person){toast("氏名を入力してください");return;}}
-  const dept=$("a_dept").value, date=$("a_date").value, budget=+$("a_budget").value||0, partner=$("a_partner").value.trim(), place=$("a_place").value.trim(), rounds=$("a_rounds").value, purpose=$("a_purpose").value.trim();
+  const dept=$("a_dept").value,date=$("a_date").value,budget=+$("a_budget").value||0,partner=$("a_partner").value.trim(),place=$("a_place").value.trim(),rounds=$("a_rounds").value,purpose=$("a_purpose").value.trim();
   if(!date||!budget||!partner||!purpose){toast("必須項目（*）を入力してください");return;}
-  
-  if(editingAppId){
-    const a=db.applications.find(x=>x.id===editingAppId);
-    const { error } = await spClient.from('applications').update({
-      person, dept, date, budget, partner, place, rounds, purpose, status: '承認待ち', approved_by: null, decided_by: null, approved_note: null, reject_note: null
-    }).eq('id', editingAppId);
-    if(!error){ closeAll(); openNotify(Object.assign({}, a, {person, dept, date, budget, partner, place, rounds, purpose}), true); loadDataFromSupabase(); }
-  } else {
-    const appData = { person, dept, date, budget, partner, place, rounds, purpose, status: "承認待ち" };
-    const { error } = await spClient.from('applications').insert([appData]);
-    if(!error){ closeAll(); openNotify(appData, false); loadDataFromSupabase(); }
-  }
+  if(editingAppId){const a=db.applications.find(x=>x.id===editingAppId);if(a){const was=(a.status==="承認済"||a.status==="却下");Object.assign(a,{person,dept,date,budget,partner,place,rounds,purpose});if(was){a.status="承認待ち";a.approvedBy="";a.decidedBy="";a.approvedNote="";a.rejectNote="";}}storeSet();closeAll();openNotify(a,true);render();return;}
+  const app={id:uid(),person,dept,date,budget,partner,place,rounds,purpose,status:"承認待ち",approvedBy:"",createdAt:Date.now()};
+  db.applications.push(app);storeSet();closeAll();openNotify(app,false);render();
 };
-
 function showNotify(title,lead,text){$("notifyTitle").textContent=title;$("notifyLead").textContent=lead;$("notifyText").textContent=text;$("notifyCopy").onclick=()=>copyText(text);$("notifyScrim").classList.add("show");}
 function budgetBlock(app){
   const ym=(app.date||"").slice(0,7),y=+ym.slice(0,4),mNum=+ym.slice(5,7);
-  if(app.dept===BUILD){const an=annualUsed(app.person,y);const remain=BUILD_ANNUAL-an;const proj=remain-app.budget;
-    return "■ 予算状況（"+app.person+"／建築事業部）\n・年間予算：¥560,000\n・年間使用（建築計上）："+yen(an)+"\n・年間残："+yenS(remain)+"\n・本件使用後の見込み年間残："+yenS(proj)+"\n・（参考）"+mNum+"月の使用："+yen(monthUsed(app.person,ym));}
+  if(app.dept===BUILD){const an=annualBuild(app.person,y);const remain=BUILD_ANNUAL-an;const proj=remain-app.budget;
+    return "■ 予算状況（"+app.person+"／建築事業部）\n・年間予算："+yen(BUILD_ANNUAL)+"\n・年間使用（建築計上）："+yen(an)+"\n・年間残："+yenS(remain)+"\n・本件使用後の見込み年間残："+yenS(proj)+"\n・（参考）"+mNum+"月の使用："+yen(monthUsed(app.person,ym));}
   return "■ 計上先："+app.dept+"（"+(app.dept==="役員"?"予算無制限":"予算設定なし")+"）\n・"+mNum+"月の使用："+yen(monthUsed(app.person,ym));
 }
 function openNotify(app,isEdit){
@@ -724,44 +703,26 @@ function showApprovalNotify(app){const text="【接待 事前申請 承認のお
   showNotify("承認しました ✅（"+app.approvedBy+"）","申請者への「承認通知」です。コピーしてLINEで申請者へ。",text);}
 function showRejectNotify(app){const text="【接待 事前申請 却下のお知らせ】\n"+app.person+"さん\n\n下記の事前申請は "+app.decidedBy+" により却下されました。\n\n・接待予定日："+fmtFull(app.date)+"\n・相手："+app.partner+"\n・予算："+yen(app.budget)+(app.rejectNote?"\n\n【理由・備考】"+app.rejectNote:"")+urlLine();
   showNotify("却下しました（"+app.decidedBy+"）","申請者への「却下通知」です。コピーしてLINEで申請者へ。",text);}
+function showConfirmNotify(r){const app=r.appId?db.applications.find(a=>a.id===r.appId):null;const text="【接待 報告内容 確認完了のお知らせ】\n"+r.person+"さん\n\n報告内容が "+r.confirmedBy+" により確認され、完了しました。\n\n・相手："+(app?app.partner:"-")+"\n・日付："+fmtFull(r.date)+"\n・自社負担："+yen(shitaBudget(r))+(r.confirmNote?"\n\n【確認者より】"+r.confirmNote:"")+urlLine();
+  showNotify("報告を確認・完了しました ✅（"+r.confirmedBy+"）","報告者への「確認完了通知」です。コピーしてLINEで報告者へ。",text);}
+function showSendbackNotify(s){const app=s.app;const text="【接待 報告 差し戻しのお知らせ】\n"+s.person+"さん\n\n報告内容が "+s.by+" により差し戻されました。お手数ですが再度ご報告ください。\n\n・相手："+(app?app.partner:"-")+(s.note?"\n\n【理由・備考】"+s.note:"")+urlLine();
+  showNotify("報告を差し戻しました（"+s.by+"）","報告者への「差し戻し通知」です。コピーしてLINEで報告者へ。再報告は「承認済み」から行えます。",text);}
 function copyText(t){if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(()=>toast("コピーしました"),()=>fallbackCopy(t));}else fallbackCopy(t);}
 function fallbackCopy(t){const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast("コピーしました");}catch(e){toast("コピーできませんでした");}document.body.removeChild(ta);}
 
-/* ============ 報告 ============ */
-$("openReport").onclick=()=>{fillPersonSelect($("r_person"));fillDeptSelect($("r_dept"));$("r_person").value=PEOPLE[0].n;$("r_dept").value=PEOPLE[0].d;$("r_otherWrap").classList.add("hide");resetReport();refreshAppSel();$("reportScrim").classList.add("show");};
+function openReportBase(){fillPersonSelect($("r_person"));fillDeptSelect($("r_dept"));$("r_otherWrap").classList.add("hide");resetReport();}
+$("openReport").onclick=()=>{openReportBase();$("r_person").value=PEOPLE[0].n;$("r_dept").value=PEOPLE[0].d;refreshAppSel();$("reportScrim").classList.add("show");};
+function openReportFor(app){openReportBase();
+  if(PEOPLE.find(x=>x.n===app.person)){$("r_person").value=app.person;$("r_otherWrap").classList.add("hide");}
+  else{$("r_person").value="__other__";$("r_otherWrap").classList.remove("hide");$("r_other").value=app.person;}
+  $("r_dept").value=app.dept;refreshAppSel();$("r_appsel").value=app.id;updateAppInfo();recalc();$("reportScrim").classList.add("show");}
+function resolveRPerson(){const v=$("r_person").value;return v==="__other__"?$("r_other").value.trim():v;}
 $("r_person").onchange=()=>{const v=$("r_person").value;const other=v==="__other__";$("r_otherWrap").classList.toggle("hide",!other);if(!other){const p=PEOPLE.find(x=>x.n===v);if(p)$("r_dept").value=p.d;}refreshAppSel();};
-$("r_other").oninput=()=>{refreshAppSel();};
-
-function openReportWithApp(app){
-  fillPersonSelect($("r_person"));fillDeptSelect($("r_dept"));
-  if(PEOPLE.find(x=>x.n===app.person)){
-    $("r_person").value=app.person;
-    $("r_otherWrap").classList.add("hide");
-  } else {
-    $("r_person").value="__other__";
-    $("r_otherWrap").classList.remove("hide");
-    $("r_other").value=app.person;
-  }
-  resetReport();
-  refreshAppSel();
-  $("r_appsel").value=app.id;
-  updateAppInfo();
-  recalc();
-  $("reportScrim").classList.add("show");
-}
-
+$("r_other").oninput=refreshAppSel;
 function refreshAppSel(){
-  const pVal=$("r_person").value;
-  const targetPerson = pVal === "__other__" ? $("r_other").value.trim() : pVal;
-  const sel=$("r_appsel");
-  const curVal=sel.value;
-  sel.innerHTML='<option value="">― 選択 ―</option>';
-  db.applications.filter(a=>a.person===targetPerson&&a.status==="承認済").forEach(a=>{
-    const o=document.createElement("option");o.value=a.id;o.textContent=fmtShort(a.date)+" "+a.partner+"（予算"+yen(a.budget)+"）";sel.appendChild(o);
-  });
-  const none=document.createElement("option");none.value="__none__";none.textContent="★ 事前申請なし（理由を入力）";sel.appendChild(none);
-  if(curVal) sel.value=curVal;
-  updateAppInfo();
+  const p=resolveRPerson();const sel=$("r_appsel");sel.innerHTML='<option value="">― 選択 ―</option>';
+  db.applications.filter(a=>a.person===p&&a.status==="承認済").forEach(a=>{const o=document.createElement("option");o.value=a.id;o.textContent=fmtShort(a.date)+" "+a.partner+"（予算"+yen(a.budget)+"）";sel.appendChild(o);});
+  const none=document.createElement("option");none.value="__none__";none.textContent="★ 事前申請なし（理由を入力）";sel.appendChild(none);updateAppInfo();
 }
 $("r_appsel").onchange=()=>{updateAppInfo();recalc();};
 function updateAppInfo(){
@@ -774,18 +735,18 @@ function resetReport(){rform={items:[]};$("r_items").innerHTML="";["r_reason","r
 $("r_addItem").onclick=()=>addItem();
 
 function addItem(){
-  const item={id:uid(),cat:"会食",label:"1次会",dir:"した",amt:"",ppl:"",exempt:0,receipt:null,vendor:""};
+  const item={id:uid(),cat:"会食",label:"1次会",dir:"した",amt:"",ppl:"",exempt:0,receipt:null,vendor:"",ocrDate:""};
   rform.items.push(item);
   const card=document.createElement("div");card.className="lineitem";
   card.innerHTML='<div class="li-top"><select class="li-kubun"></select><button class="li-del">×</button></div>'+
     '<div class="segs li-dir"><div class="seg active" data-dir="した">接待した（自社負担）</div><div class="seg" data-dir="された">された（相手負担）</div></div>'+
-    '<div class="grid2"><div class="fld"><label class="li-amtlab">金額（税込）</label><input type="number" class="li-amt" min="0" step="1000" placeholder="20000"></div>'+
+    '<div class="grid2"><div class="fld"><label class="li-amtlab">金額（税込）</label><input type="number" class="li-amt" step="1000" placeholder="20000"></div>'+
     '<div class="fld li-pplwrap"><label>参加人数（社内＋社外）</label><input type="number" class="li-ppl" min="1" placeholder="4"><div class="taxflag li-tax"></div></div></div>'+
     '<label class="chk"><input type="checkbox" class="li-ex"> 予算の対象外（必要コンペ・謝罪の手土産など）</label>'+
     '<div class="li-rcpt"><label style="font-size:11px;color:var(--ink2);font-weight:600">領収書 <span style="color:var(--red)">*</span></label>'+
     '<div class="droprow"><div class="drop li-cam">📷 撮影</div><div class="drop li-lib">🖼 写真から選択</div></div>'+
     '<input type="file" class="li-fcam hide" accept="image/*" capture="environment"><input type="file" class="li-flib hide" accept="image/*">'+
-    '<div class="li-ocr"></div><div class="rcpt-preview hide li-prev"><img class="li-thumb rz"><button class="btn-rcpt-del li-rcpt-del">🗑 削除</button></div></div>';
+    '<div class="li-ocr"></div><div class="rcpt-preview hide li-prev"><img class="li-thumb rz"><span class="li-vendor s"></span><button class="li-rdel" style="margin-left:auto;border:none;background:#F0E9E7;color:var(--red);border-radius:8px;padding:5px 9px;font-size:12px;font-weight:700;cursor:pointer;">✕ 写真を削除</button></div></div>';
   const ksel=card.querySelector(".li-kubun");KUBUN.forEach(k=>{const o=document.createElement("option");o.value=k.v;o.textContent=k.t;ksel.appendChild(o);});
   const dsegs=card.querySelectorAll(".li-dir .seg");
   const amt=card.querySelector(".li-amt"),ppl=card.querySelector(".li-ppl"),ex=card.querySelector(".li-ex"),taxEl=card.querySelector(".li-tax");
@@ -800,27 +761,13 @@ function addItem(){
   const fcam=card.querySelector(".li-fcam"),flib=card.querySelector(".li-flib");
   card.querySelector(".li-cam").onclick=()=>fcam.click();card.querySelector(".li-lib").onclick=()=>flib.click();
   const thumbEl=card.querySelector(".li-thumb");thumbEl.onclick=()=>{if(item.receipt)openLightbox(item.receipt);};
-  card.querySelector(".li-rcpt-del").onclick=()=>{
-    item.receipt=null;
-    card.querySelector(".li-prev").classList.add("hide");
-    thumbEl.src="";
-    card.querySelector(".li-ocr").innerHTML="";
-  };
-  async function onFile(e){
-    const f=e.target.files[0];if(!f)return;
-    const thumb=await resizeImg(f,440,.55);
-    item.receipt=thumb;
-    card.querySelector(".li-prev").classList.remove("hide");
-    thumbEl.src=thumb;
-    const st=card.querySelector(".li-ocr");
-    st.innerHTML='<span class="ocr-status" style="color:var(--green)">✓ 添付完了（手入力で金額等を入力してください）</span>';
-    tax();recalc();e.target.value="";
-  }
+  async function onFile(e){const f=e.target.files[0];if(!f)return;const thumb=await resizeImg(f,440,.55);item.receipt=thumb;card.querySelector(".li-prev").classList.remove("hide");thumbEl.src=thumb;card.querySelector(".li-ocr").innerHTML='<span class="ocr-status" style="color:var(--green)">✓ 添付しました</span>';
+    e.target.value="";}
   fcam.onchange=onFile;flib.onchange=onFile;
+  card.querySelector(".li-rdel").onclick=()=>{item.receipt=null;item.vendor="";item.ocrDate="";card.querySelector(".li-prev").classList.add("hide");thumbEl.src="";card.querySelector(".li-vendor").textContent="";card.querySelector(".li-ocr").innerHTML="";fcam.value="";flib.value="";toast("写真を削除しました");};
   card.querySelector(".li-del").onclick=()=>{const idx=rform.items.indexOf(item);if(idx>=0)rform.items.splice(idx,1);card.remove();recalc();};
   $("r_items").appendChild(card);ui();
 }
-
 function recalc(){let sh=0,sa=0,ex=0;rform.items.forEach(i=>{const a=+i.amt||0;if(i.dir==="された")sa+=a;else if(i.exempt)ex+=a;else sh+=a;});
   $("r_sum").innerHTML='<span><b>予算に計上（自社負担）</b><span class="num">'+yen(sh)+'</span></span><span><b>相手負担（記録のみ）</b><span class="num">'+yen(sa)+'</span></span><span><b>対象外</b><span class="num">'+yen(ex)+'</span></span>';
   const cmp=$("r_compare"),ow=$("r_overWrap");
@@ -830,7 +777,7 @@ function recalc(){let sh=0,sa=0,ex=0;rform.items.forEach(i=>{const a=+i.amt||0;i
 }
 function resizeImg(file,max,q){return new Promise(res=>{const img=new Image();const rd=new FileReader();rd.onload=()=>{img.onload=()=>{let w=img.width,h=img.height;if(w>h&&w>max){h=h*max/w;w=max;}else if(h>max){w=w*max/h;h=max;}const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);res(c.toDataURL("image/jpeg",q));};img.src=rd.result;};rd.readAsDataURL(file);});}
 
-$("r_save").onclick=async ()=>{
+$("r_save").onclick=()=>{
   let person=$("r_person").value;if(person==="__other__"){person=$("r_other").value.trim();if(!person){toast("氏名を入力してください");return;}}
   const appsel=$("r_appsel").value;if(!appsel){toast("事前申請を選択してください");return;}
   const noApp=appsel==="__none__";if(noApp&&!$("r_reason").value.trim()){toast("事前申請できなかった理由は必須です");return;}
@@ -839,28 +786,12 @@ $("r_save").onclick=async ()=>{
   const sh=items.filter(i=>i.dir==="した"&&!i.exempt).reduce((s,i)=>s+(+i.amt||0),0);
   const over=(currentAppBudget!=null&&sh>currentAppBudget);if(over&&!$("r_over").value.trim()){toast("予算超過の理由は必須です");return;}
   if(!$("r_rel").value.trim()){toast("関係値の変化を入力してください");return;}
-  
-  const app=noApp?null:db.applications.find(a=>a.id===appsel);
-  const mappedItems = items.map(i=>({cat:i.cat, label:i.label, dir:i.dir, amt:+i.amt||0, ppl:i.cat==="会食"&&i.dir==="した"?(+i.ppl||null):null, exempt:i.exempt, vendor:i.vendor, receipt:i.receipt}));
-  
-  const repData = {
-    person, dept: $("r_dept").value, app_id: noApp?null:appsel, reason: noApp?$("r_reason").value.trim():null,
-    date: app?app.date:new Date().toISOString().slice(0,10), items: mappedItems,
-    app_budget: currentAppBudget, over_reason: over?$("r_over").value.trim():null,
-    detail: $("r_detail").value.trim(), rel: $("r_rel").value.trim(), checked_by: null
-  };
-
-  const { error } = await spClient.from('reports').insert([repData]);
-  if(app) {
-     await spClient.from('applications').update({status: '報告済'}).eq('id', app.id);
-  }
-  
-  if(!error){
-    closeAll(); toast("報告を登録しました"); loadDataFromSupabase();
-    cur=new Date(repData.date.slice(0,4),+repData.date.slice(5,7)-1,1);
-  } else {
-    toast("エラーが発生しました");
-  }
+  const app=noApp?null:db.applications.find(a=>a.id===appsel);const ocrDate=(items.find(i=>i.ocrDate)||{}).ocrDate;
+  const rep={id:uid(),person,dept:$("r_dept").value,appId:noApp?null:appsel,reason:noApp?$("r_reason").value.trim():"",status:"確認待ち",date:(app?app.date:(ocrDate||new Date().toISOString().slice(0,10))),
+    items:items.map(i=>({cat:i.cat,label:i.label,dir:i.dir,amt:+i.amt||0,ppl:i.cat==="会食"&&i.dir==="した"?(+i.ppl||null):null,exempt:i.exempt,vendor:i.vendor,receipt:i.receipt})),
+    appBudget:currentAppBudget,overReason:over?$("r_over").value.trim():"",detail:$("r_detail").value.trim(),rel:$("r_rel").value.trim(),createdAt:Date.now()};
+  db.reports.push(rep);if(app)app.status="報告済";storeSet();closeAll();toast("報告を登録しました（内容確認待ち）");
+  cur=new Date(rep.date.slice(0,4),+rep.date.slice(5,7)-1,1);render();
 };
 
 function closeAll(){document.querySelectorAll(".scrim").forEach(s=>s.classList.remove("show"));}
@@ -869,17 +800,15 @@ document.querySelectorAll(".scrim").forEach(s=>s.onclick=e=>{if(e.target===s)clo
 let toastT;function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),2600);}
 $("prevM").onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()-1,1);render();};
 $("nextM").onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);render();};
-$("setUrl").onclick=()=>{const v=prompt("申請システムのURL（LINE文に添付）",db.systemUrl||"https://my-claude-app-orcin.vercel.app/");if(v!==null){db.systemUrl=v.trim();toast("URLを設定しました（クラウド反映は不要です）");}};
-$("syncNow").onclick=()=>loadDataFromSupabase();
+$("setUrl").onclick=()=>{const v=prompt("申請システムのURL（LINE文に添付。ホスティング後に設定）",db.systemUrl||"");if(v!==null){db.systemUrl=v.trim();storeSet();toast("URLを保存しました");}};
 
-function allRows(){const rows=[["日付","曜日","報告者","計上部署","区分","カテゴリ","方向","金額(円)","参加人数","1人あたり","予算区分","申請予算","予算超過理由","事前申請","承認者","役員確認者","事後理由","店名/相手","全体メモ","関係値の変化"]];
+function allRows(){const rows=[["日付","曜日","報告者","計上部署","区分","カテゴリ","方向","金額(円)","参加人数","1人あたり","予算区分","申請予算","予算超過理由","事前申請","承認者","事後理由","店名/相手","全体メモ","関係値の変化"]];
   db.reports.slice().sort((a,b)=>a.date<b.date?-1:1).forEach(r=>{const app=r.appId?db.applications.find(a=>a.id===r.appId):null;
-    (r.items||[]).forEach(i=>rows.push([r.date,dow(r.date),r.person,r.dept||"",i.label||i.cat,i.cat,"接待"+i.dir,i.amt,i.ppl||"",i.ppl?Math.round(i.amt/i.ppl):"",i.dir==="された"?"（被接待）":(i.exempt?"対象外":"対象"),r.appBudget!=null?r.appBudget:"",r.overReason||"",r.appId?"あり":"なし",app&&app.approvedBy?app.approvedBy:"",r.checkedBy||"",r.reason||"",i.vendor||(app?app.partner:"")||"",r.detail||"",r.rel||""]));});
+    (r.items||[]).forEach(i=>rows.push([r.date,dow(r.date),r.person,r.dept||"",i.label||i.cat,i.cat,"接待"+i.dir,i.amt,i.ppl||"",i.ppl?Math.round(i.amt/i.ppl):"",i.dir==="された"?"（被接待）":(i.exempt?"対象外":"対象"),r.appBudget!=null?r.appBudget:"",r.overReason||"",r.appId?"あり":"なし",app&&app.approvedBy?app.approvedBy:"",r.reason||"",i.vendor||(app?app.partner:"")||"",r.detail||"",r.rel||""]));});
   return rows;}
 $("exportXlsx").onclick=()=>{if(!db.reports.length){toast("書き出す報告がありません");return;}const ws=XLSX.utils.aoa_to_sheet(allRows());const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"接待交際費履歴");XLSX.writeFile(wb,"接待交際費_全履歴.xlsx");};
 $("exportCsv").onclick=()=>{if(!db.reports.length){toast("書き出す報告がありません");return;}const csv="\uFEFF"+allRows().map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(",")).join("\r\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="接待交際費_全履歴.csv";a.click();};
 
-// 初回ロードの呼び出しは、認証ステータス監視 (onAuthStateChange) に任せているため、ここでは直接呼び出しません。
 </script>
 </body>
 </html>
