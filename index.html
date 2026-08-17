@@ -251,7 +251,7 @@
 
   <footer>
     データは全対象者で共有・蓄積されます。予算計上は「接待した（自社負担）」のみ。<br>
-    役員＝予算無制限／建築事業部＝年間¥56,000/人／AI事業部＝予算設定なし。通知は半自動（LINE文コピー）。
+    役員＝予算無制限／建築事業部＝月間¥80,000/人・年間¥560,000/人／AI事業部＝予算設定なし。通知は半自動。
   </footer>
 </div>
 
@@ -365,21 +365,27 @@
 
 <script>
 // ==========================================
-// ▼※※※ ここを書き換える ※※※▼
+// ▼※※※ URLとキーの設定 ※※※▼
 // ==========================================
 const SUPABASE_URL = "https://ivmwzvokqrhhuyfkgvit.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bXd6dm9rcXJoaHV5Zmtndml0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1OTI1OTMsImV4cCI6MjEwMjE2ODU5M30.MiXBfQ2s1Je5d9yPssCozCGp30ufLvkP8Li3Tt-CUTE";
 // ==========================================
-// ▲※※※ ここを書き換える ※※※▲
+// ▲※※※ URLとキーの設定 ※※※▲
 // ==========================================
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const KEY="soho-settai-v12";
-const DEFAULT_URL="https://soho-settai.vercel.app/";
+const DEFAULT_URL="https://my-claude-app-orcin.vercel.app/";
 const PEOPLE=[{n:"宮崎嘉人",d:"役員"},{n:"歌田修造",d:"役員"},{n:"宮崎誠人",d:"建築事業部"},{n:"浅野司",d:"建築事業部"},{n:"森田諒也",d:"AI事業部"},{n:"金井翔",d:"AI事業部"}];
 const DEPTS=["役員","建築事業部","AI事業部"];
-const BUILD="建築事業部";const BUILD_ANNUAL=560000;
+
+// === 予算の設定 ===
+const BUILD="建築事業部";
+const BUILD_MONTHLY=80000;
+const BUILD_ANNUAL=560000;
+// ================
+
 const KUBUN=[
   {v:"会食1",cat:"会食",label:"1次会",t:"会食（1次会）"},{v:"会食2",cat:"会食",label:"2次会",t:"会食（2次会）"},
   {v:"会食3",cat:"会食",label:"3次会以上",t:"会食（3次会以上）"},{v:"交通",cat:"交通",label:"",t:"交通（タクシー等）"},
@@ -402,7 +408,7 @@ const fmtFull=s=>s?(s+"（"+dow(s)+"）"):"-";
 const fmtShort=s=>s?((s).slice(5).replace("-","/")+"（"+dow(s)+"）"):"-";
 const homeDept=name=>{const p=PEOPLE.find(x=>x.n===name);return p?p.d:"AI事業部";};
 const deptClass=d=>d==="役員"?"exec":d==="建築事業部"?"build":d==="AI事業部"?"ai":"other";
-const deptNote=d=>d==="役員"?"予算無制限":d==="建築事業部"?("年間 "+yen(BUILD_ANNUAL)+"/人"):d==="AI事業部"?"予算設定なし":"";
+const deptNote=d=>d==="役員"?"予算無制限":d==="建築事業部"?("月間 "+yen(BUILD_MONTHLY)+"/人"):d==="AI事業部"?"予算設定なし":"";
 
 // ▼ ログイン処理 ▼
 $("loginBtn").onclick = async () => {
@@ -418,7 +424,7 @@ $("loginBtn").onclick = async () => {
     $("loginBtn").textContent = "ログイン";
   } else {
     $("loginScrim").classList.remove("show");
-    load(); // ログイン成功時に読み込み
+    load(); 
   }
 };
 
@@ -431,12 +437,12 @@ async function checkSession() {
 }
 checkSession();
 
-// ▼ データの読み込み処理（Supabase連携） ▼
+// ▼ データの読み書き処理 ▼
 async function storeGet(key) {
   try {
     const { data, error } = await supabaseClient.from('settai_db').select('data').eq('id', 1).single();
     if (error) {
-      if (error.code === 'PGRST116') return null; // まだデータがない場合
+      if (error.code === 'PGRST116') return null;
       throw error;
     }
     return data ? data.data : null;
@@ -446,7 +452,6 @@ async function storeGet(key) {
   }
 }
 
-// ▼ データの保存処理（Supabase連携） ▼
 async function storeSet() {
   try {
     const { error } = await supabaseClient.from('settai_db').update({ data: db }).eq('id', 1);
@@ -480,6 +485,7 @@ function pendingBy(name,ym){return db.applications.filter(a=>a.person===name&&a.
 function deptMonthUsed(dep,ym){return db.reports.filter(r=>r.dept===dep&&inMonth(r,ym)).reduce((s,r)=>s+shitaBudget(r),0);}
 function allMonthUsed(ym){return db.reports.filter(r=>inMonth(r,ym)).reduce((s,r)=>s+shitaBudget(r),0);}
 function allMonthSareta(ym){return db.reports.filter(r=>inMonth(r,ym)).reduce((s,r)=>s+saretaSum(r),0);}
+function allMonthExempt(ym){return db.reports.filter(r=>inMonth(r,ym)).reduce((s,r)=>s+exemptSum(r),0);}
 function urlLine(){return "\n▼申請システム："+(db.systemUrl||DEFAULT_URL);}
 
 function repChecks(r){
@@ -506,25 +512,53 @@ function renderFlow(){
 }
 function setBadge(id,n){const el=$(id);if(n>0){el.textContent=n;el.classList.remove("hide");}else{el.classList.add("hide");}}
 document.querySelectorAll(".fstage").forEach(el=>el.onclick=()=>openFlow(el.dataset.stage));
+
+// ▼ 各フローを開いたときの処理 ▼
 function openFlow(stage){
   let title,lead,items=[],type="app";
-  if(stage==="pending"){title="申請中（承認待ち）";lead="承認者（宮崎嘉人・歌田修造）の承認待ちです。タップで承認/却下できます。";items=db.applications.filter(a=>a.status==="承認待ち");}
-  else if(stage==="approved"){title="承認済み（報告待ち）";lead="承認済みです。タップすると、その申請の報告を作成できます。";items=db.applications.filter(a=>a.status==="承認済");}
-  else if(stage==="repcheck"){title="報告内容の確認（確認待ち）";lead="宮崎嘉人・歌田修造が報告内容を確認します。タップして確認/差し戻し。";items=db.reports.filter(r=>(r.status||"完了")==="確認待ち");type="rep";}
-  else if(stage==="rejected"){title="差し戻し（却下）";lead="却下された申請です。タップで編集・再申請、または削除できます。";items=db.applications.filter(a=>a.status==="却下");}
-  else{title="完了済み";lead="承認→報告→内容確認まで完了した記録です（申請・報告データを保管）。";items=db.reports.filter(r=>(r.status||"完了")==="完了");type="rep";}
+  if(stage==="pending"){
+    title="申請中（承認待ち）";
+    lead="【担当：社長・専務】承認待ちの申請です。タップして承認または却下できます。";
+    items=db.applications.filter(a=>a.status==="承認待ち");
+  }
+  else if(stage==="approved"){
+    title="承認済み（報告待ち）";
+    lead="【担当：全員】承認済みの申請です。タップして報告の作成や削除ができます。";
+    items=db.applications.filter(a=>a.status==="承認済");
+  }
+  else if(stage==="repcheck"){
+    title="報告内容確認（確認待ち）";
+    lead="【担当：社長・専務】報告内容を確認し、完了または差し戻しを行ってください。";
+    items=db.reports.filter(r=>(r.status||"完了")==="確認待ち");
+    type="rep";
+  }
+  else if(stage==="rejected"){
+    title="差し戻し（却下）";
+    lead="却下された申請です。タップで編集・再申請、または削除できます。";
+    items=db.applications.filter(a=>a.status==="却下");
+  }
+  else{
+    title="完了済み";
+    lead="すべて完了した記録です。タップして詳細の確認や報告の削除ができます。";
+    items=db.reports.filter(r=>(r.status||"完了")==="完了");
+    type="rep";
+  }
+  
   items.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-  $("flowTitle").textContent=title;$("flowLead").textContent=lead;
+  $("flowTitle").textContent=title;
+  $("flowLead").textContent=lead;
+  
   const body=$("flowBody");
   if(!items.length){body.innerHTML='<div class="empty">対象はありません。</div>';$("flowScrim").classList.add("show");return;}
   body.innerHTML="";
+  
   items.forEach(x=>{
     const div=document.createElement("div");div.className="mini";
     if(type==="app"){
       const sc={"承認待ち":"pending","承認済":"approved","却下":"rejected","報告済":"done"}[x.status];
       div.innerHTML='<span class="st '+sc+'">'+x.status+'</span><span class="pill '+deptClass(x.dept)+'">'+esc(x.dept)+'</span><div class="mm"><div class="mt">'+esc(x.person+"｜"+x.partner)+'</div><div class="ms">'+fmtShort(x.date)+'</div></div><div class="ma num">'+yen(x.budget)+'</div>';
-      if(stage==="approved"){div.onclick=()=>{closeAll();openReportFor(x);};}
-      else{div.onclick=()=>{closeAll();openAppDetail(x.id);};}
+      // 承認済みも詳細画面を開くように変更
+      div.onclick=()=>{closeAll();openAppDetail(x.id);};
     }else{
       const app=x.appId?db.applications.find(a=>a.id===x.appId):null;const issue=repHasIssue(x);
       const check=(x.status||"完了")==="確認待ち";
@@ -541,9 +575,9 @@ function render(){
   $("mLabel").textContent=y+"年"+(cur.getMonth()+1)+"月";
   renderFlow();
   const mNum=cur.getMonth()+1;
-  const total=allMonthUsed(ym),sar=allMonthSareta(ym);
+  const total=allMonthUsed(ym),sar=allMonthSareta(ym),allex=allMonthExempt(ym);
   let sd="";DEPTS.forEach(d=>{sd+='<div class="sd"><div class="k"><span class="dot '+deptClass(d)+'"></span>'+d+'</div><div class="v num">'+yen(deptMonthUsed(d,ym))+'</div></div>';});
-  $("summary").innerHTML='<div class="sum-main"><div><div class="lab">'+mNum+'月 全員の使用合計（自社負担）</div><div class="sum-sub">被接待 合計 '+yen(sar)+'</div></div><div class="big num">'+yen(total)+'</div></div><div class="sum-depts">'+sd+'</div>';
+  $("summary").innerHTML='<div class="sum-main"><div><div class="lab">'+mNum+'月 全員の使用合計（自社負担）</div><div class="sum-sub">被接待 '+yen(sar)+' ｜ 対象外 '+yen(allex)+'</div></div><div class="big num">'+yen(total)+'</div></div><div class="sum-depts">'+sd+'</div>';
 
   const wrap=$("people");wrap.innerHTML="";
   DEPTS.forEach(dep=>{
@@ -558,13 +592,21 @@ function render(){
     html+='</div></div>';wrap.insertAdjacentHTML("beforeend",html);}
   wrap.querySelectorAll("[data-person]").forEach(el=>el.onclick=()=>openPerson(el.dataset.person));
 }
+
 function personCard(name,dept){
   const ym=mkey(cur),y=cur.getFullYear();const used=monthUsed(name,ym);const pend=pendingBy(name,ym);
   let extra="";
-  if(dept===BUILD){const an=annualBuild(name,y);const bal=BUILD_ANNUAL-an;const pct=Math.min(100,an/BUILD_ANNUAL*100);
-    extra='<div class="pc-bar"><i class="'+(an>BUILD_ANNUAL?'over':'')+'" style="width:'+(an>BUILD_ANNUAL?100:pct)+'%"></i></div>'+
+  if(dept===BUILD){
+    const mBal=BUILD_MONTHLY-used;const mPct=Math.min(100,used/BUILD_MONTHLY*100);
+    const an=annualBuild(name,y);const bal=BUILD_ANNUAL-an;const pct=Math.min(100,an/BUILD_ANNUAL*100);
+    extra='<div class="pc-bar"><i class="'+(used>BUILD_MONTHLY?'over':'')+'" style="width:'+(used>BUILD_MONTHLY?100:mPct)+'%"></i></div>'+
+      '<div class="pc-sub">月間 <span class="num">'+yen(used)+'</span> / <span class="num">'+yen(BUILD_MONTHLY)+'</span> 残 <span class="num">'+yenS(mBal)+'</span></div>'+
+      '<div class="pc-bar" style="margin-top:8px;"><i class="'+(an>BUILD_ANNUAL?'over':'')+'" style="width:'+(an>BUILD_ANNUAL?100:pct)+'%; background:linear-gradient(90deg,var(--muted),#9AA6B0);"></i></div>'+
       '<div class="pc-sub">年間 <span class="num">'+yen(an)+'</span> / <span class="num">'+yen(BUILD_ANNUAL)+'</span> 残 <span class="num">'+yenS(bal)+'</span></div>';
-  }else{const an=annualTotal(name,y);extra='<div class="pc-sub">予算：'+(dept==="役員"?"無制限":"設定なし")+' ・ 年間 <span class="num">'+yen(an)+'</span>'+(pend?' ・ 承認待ち '+pend:'')+'</div>';}
+  }else{
+    const an=annualTotal(name,y);
+    extra='<div class="pc-sub">予算：'+(dept==="役員"?"無制限":"設定なし")+' ・ 年間 <span class="num">'+yen(an)+'</span>'+(pend?' ・ 承認待ち '+pend:'')+'</div>';
+  }
   return '<div class="pcard" data-person="'+esc(name)+'"><div class="pc-top"><span class="pc-name">'+esc(name)+'</span><span class="chev">›</span></div>'+
     '<div class="pc-amt"><span class="num">'+yen(used)+'</span><span class="pc-cap">今月の自社負担</span></div>'+extra+'</div>';
 }
@@ -573,13 +615,27 @@ function openPerson(name){
   const ym=mkey(cur),y=cur.getFullYear();const dept=homeDept(name);
   const reps=reportsOf(name,ym);const used=monthUsed(name,ym),sa=monthSareta(name,ym),ex=monthExempt(name,ym);const apps=monthApps(name,ym);
   $("personName").textContent=name;$("personSub").textContent=dept+" ・ "+y+"年"+(cur.getMonth()+1)+"月";
-  let html='<div class="stats">'+
+  
+  let html='<div class="stats" style="grid-template-columns:repeat(2,1fr);">'+
     '<div class="stat"><div class="k">報告件数</div><div class="v num">'+reps.length+'<span style="font-size:12px"> 件</span></div></div>'+
     '<div class="stat"><div class="k">使用額（自社負担）</div><div class="v num">'+yen(used)+'</div></div>'+
     '<div class="stat"><div class="k">被接待（相手負担）</div><div class="v num">'+yen(sa)+'</div></div>'+
-    '<div class="stat"><div class="k">年間使用（自社負担）</div><div class="v num">'+yen(annualTotal(name,y))+'</div></div></div>';
-  if(dept===BUILD){const an=annualBuild(name,y);const bal=BUILD_ANNUAL-an;const pct=Math.min(100,an/BUILD_ANNUAL*100);
-    html+='<div style="background:#F5F7F9;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;"><div style="font-size:11px;color:var(--muted);font-weight:600;">建築事業部 年間予算</div><div style="display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 8px;"><span class="num" style="font-size:19px;font-weight:700">'+yen(an)+' <span style="font-size:12px;color:var(--muted)">/ '+yen(BUILD_ANNUAL)+'</span></span><span class="num" style="font-size:12px;color:var(--muted)">残 '+yenS(bal)+'</span></div><div class="pc-bar"><i class="'+(an>BUILD_ANNUAL?'over':'')+'" style="width:'+(an>BUILD_ANNUAL?100:pct)+'%"></i></div></div>';}
+    '<div class="stat"><div class="k">対象外（自社負担）</div><div class="v num">'+yen(ex)+'</div></div>'+
+    '<div class="stat" style="grid-column: 1 / -1;"><div class="k">年間トータル使用額（自社負担）</div><div class="v num">'+yen(annualTotal(name,y))+'</div></div></div>';
+  
+  if(dept===BUILD){
+    const mBal=BUILD_MONTHLY-used;const mPct=Math.min(100,used/BUILD_MONTHLY*100);
+    const an=annualBuild(name,y);const bal=BUILD_ANNUAL-an;const pct=Math.min(100,an/BUILD_ANNUAL*100);
+    html+='<div style="background:#F5F7F9;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;">'+
+      '<div style="font-size:11px;color:var(--muted);font-weight:600;">建築事業部 月間予算</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 8px;"><span class="num" style="font-size:19px;font-weight:700">'+yen(used)+' <span style="font-size:12px;color:var(--muted)">/ '+yen(BUILD_MONTHLY)+'</span></span><span class="num" style="font-size:12px;color:var(--muted)">残 '+yenS(mBal)+'</span></div>'+
+      '<div class="pc-bar"><i class="'+(used>BUILD_MONTHLY?'over':'')+'" style="width:'+(used>BUILD_MONTHLY?100:mPct)+'%"></i></div>'+
+      '<div style="font-size:11px;color:var(--muted);font-weight:600;margin-top:16px;">建築事業部 年間予算</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 8px;"><span class="num" style="font-size:19px;font-weight:700">'+yen(an)+' <span style="font-size:12px;color:var(--muted)">/ '+yen(BUILD_ANNUAL)+'</span></span><span class="num" style="font-size:12px;color:var(--muted)">残 '+yenS(bal)+'</span></div>'+
+      '<div class="pc-bar"><i class="'+(an>BUILD_ANNUAL?'over':'')+'" style="width:'+(an>BUILD_ANNUAL?100:pct)+'%; background:linear-gradient(90deg,var(--muted),#9AA6B0);"></i></div>'+
+      '</div>';
+  }
+  
   html+='<div style="font-size:11px;color:var(--muted);font-weight:700;margin:4px 2px 8px;">申請状況（'+apps.length+'件）</div>';
   if(!apps.length)html+='<div class="empty">この月の申請はありません。</div>';
   else apps.sort((a,b)=>b.createdAt-a.createdAt).forEach(a=>{const sc={"承認待ち":"pending","承認済":"approved","却下":"rejected","報告済":"done"}[a.status];
@@ -611,17 +667,21 @@ function openRepDetail(r){
   html+='<div class="preview"><b>実際の接待内容</b>\n'+esc(r.detail||"-")+'\n\n<b>関係値の変化</b>\n'+esc(r.rel||"-")+'</div>';
   if(app){html+='<div class="preview green"><b>【事前申請 内容】</b>\n・申請者：'+esc(app.person)+'\n・接待予定日：'+esc(fmtFull(app.date))+'\n・相手：'+esc(app.partner)+'\n・場所：'+esc(app.place||"-")+'\n・何次会：'+esc(app.rounds)+'\n・申請予算：'+yen(app.budget)+'\n・目的：'+esc(app.purpose)+'\n・承認：'+esc(app.approvedBy||"-")+(app.approvedNote?'（'+esc(app.approvedNote)+'）':'')+'</div>';}
   const st=r.status||"完了";
-  html+='<div class="preview" style="'+(st==="確認待ち"?'background:var(--amber-soft);border-color:#EBDBB4;':'background:var(--green-soft);border-color:#CFE6DB;')+'"><b>ステータス</b>\n'+(st==="確認待ち"?"報告内容の確認待ち（宮崎・歌田が確認します）":"完了"+(r.confirmedBy?"（確認："+esc(r.confirmedBy)+(r.confirmNote?" ／ "+esc(r.confirmNote):"")+"）":""))+'</div>';
+  html+='<div class="preview" style="'+(st==="確認待ち"?'background:var(--amber-soft);border-color:#EBDBB4;':'background:var(--green-soft);border-color:#CFE6DB;')+'"><b>ステータス</b>\n'+(st==="確認待ち"?"報告内容の確認待ち（社長・専務が確認します）":"完了"+(r.confirmedBy?"（確認："+esc(r.confirmedBy)+(r.confirmNote?" ／ "+esc(r.confirmNote):"")+"）":""))+'</div>';
   $("repDetailBody").innerHTML=html;
   $("repDetailBody").querySelectorAll(".rz").forEach(img=>img.onclick=()=>openLightbox(img.src));
   const act=$("repDetailActions");act.innerHTML="";
+  
   if(st==="確認待ち"){
     const ok=document.createElement("button");ok.className="btn-ok";ok.textContent="報告を確認（完了）";ok.onclick=()=>{closeAll();openDecision(r.id,"confirm");};act.appendChild(ok);
     const sb=document.createElement("button");sb.className="btn-ng";sb.textContent="報告を差し戻す";sb.onclick=()=>{closeAll();openDecision(r.id,"sendback");};act.appendChild(sb);
   }
+  
+  // ▼ どこからでも削除可能 ▼
   const del=document.createElement("button");del.className="btn-del";del.textContent="この報告を削除";
   del.onclick=()=>{if(del.dataset.armed){removeReport(r.id);}else{del.dataset.armed="1";del.textContent="もう一度タップで削除";setTimeout(()=>{del.dataset.armed="";del.textContent="この報告を削除";},3000);}};
   act.appendChild(del);
+  
   $("repDetailScrim").classList.add("show");
 }
 function removeReport(id){const r=db.reports.find(x=>x.id===id);if(!r)return;const app=r.appId?db.applications.find(a=>a.id===r.appId):null;if(app)app.status="承認済";db.reports=db.reports.filter(x=>x.id!==id);storeSet();closeAll();render();toast(app?"報告を削除しました（承認済み・報告待ちに戻しました）":"報告を削除しました");}
@@ -635,16 +695,24 @@ function openAppDetail(id){
   if(a.approvedNote)t+="\n承認備考："+a.approvedNote;if(a.rejectNote)t+="\n却下備考："+a.rejectNote;
   $("appDetailText").textContent=t;
   const act=$("appDetailActions");act.innerHTML="";
+  
   if(a.status!=="報告済"){const e=document.createElement("button");e.className="btn-edit";e.textContent="編集";e.onclick=()=>openApplyEdit(a);act.appendChild(e);}
+  
   if(a.status==="承認待ち"){
     const ok=document.createElement("button");ok.className="btn-ok";ok.textContent="承認する";ok.onclick=()=>{closeAll();openDecision(a.id,"approve");};act.appendChild(ok);
     const ng=document.createElement("button");ng.className="btn-ng";ng.textContent="却下する";ng.onclick=()=>{closeAll();openDecision(a.id,"reject");};act.appendChild(ng);
   }
-  if(a.status==="承認待ち"||a.status==="却下"){
-    const del=document.createElement("button");del.className="btn-del";del.textContent="削除";
-    del.onclick=()=>{if(del.dataset.armed){removeApp(a.id);}else{del.dataset.armed="1";del.textContent="もう一度タップで削除";setTimeout(()=>{del.dataset.armed="";del.textContent="削除";},3000);}};
-    act.appendChild(del);
+  
+  // ▼ 承認済みの場合に報告作成ボタンを表示 ▼
+  if(a.status==="承認済"){
+    const repBtn=document.createElement("button");repBtn.className="btn-save";repBtn.textContent="この申請の報告を作成";repBtn.onclick=()=>{closeAll();openReportFor(a);};act.appendChild(repBtn);
   }
+  
+  // ▼ どこからでも削除可能 ▼
+  const del=document.createElement("button");del.className="btn-del";del.textContent="申請を削除";
+  del.onclick=()=>{if(del.dataset.armed){removeApp(a.id);}else{del.dataset.armed="1";del.textContent="もう一度タップで削除";setTimeout(()=>{del.dataset.armed="";del.textContent="申請を削除";},3000);}};
+  act.appendChild(del);
+  
   $("appDetailScrim").classList.add("show");
 }
 function removeApp(id){db.applications=db.applications.filter(a=>a.id!==id);storeSet();closeAll();render();toast("申請を削除しました");}
@@ -686,12 +754,17 @@ $("a_save").onclick=()=>{
   db.applications.push(app);storeSet();closeAll();openNotify(app,false);render();
 };
 function showNotify(title,lead,text){$("notifyTitle").textContent=title;$("notifyLead").textContent=lead;$("notifyText").textContent=text;$("notifyCopy").onclick=()=>copyText(text);$("notifyScrim").classList.add("show");}
+
 function budgetBlock(app){
   const ym=(app.date||"").slice(0,7),y=+ym.slice(0,4),mNum=+ym.slice(5,7);
-  if(app.dept===BUILD){const an=annualBuild(app.person,y);const remain=BUILD_ANNUAL-an;const proj=remain-app.budget;
-    return "■ 予算状況（"+app.person+"／建築事業部）\n・年間予算："+yen(BUILD_ANNUAL)+"\n・年間使用（建築計上）："+yen(an)+"\n・年間残："+yenS(remain)+"\n・本件使用後の見込み年間残："+yenS(proj)+"\n・（参考）"+mNum+"月の使用："+yen(monthUsed(app.person,ym));}
-  return "■ 計上先："+app.dept+"（"+(app.dept==="役員"?"予算無制限":"予算設定なし")+"）\n・"+mNum+"月の使用："+yen(monthUsed(app.person,ym));
+  if(app.dept===BUILD){
+    const an=annualBuild(app.person,y);const remain=BUILD_ANNUAL-an;const proj=remain-app.budget;
+    const mUsed=monthUsed(app.person,ym);const mRemain=BUILD_MONTHLY-mUsed;const mProj=mRemain-app.budget;
+    return "■ 予算状況（"+app.person+"／建築事業部）\n・月間予算："+yen(BUILD_MONTHLY)+"（今月残："+yenS(mRemain)+" → 使用後："+yenS(mProj)+"）\n・年間予算："+yen(BUILD_ANNUAL)+"（年間残："+yenS(remain)+" → 使用後："+yenS(proj)+"）";
+  }
+  return "■ 計上先："+app.dept+"（"+(app.dept==="役員"?"予算無制限":"予算設定なし")+"）\n・"+mNum+"月の使用額："+yen(monthUsed(app.person,ym));
 }
+
 function openNotify(app,isEdit){
   const text="お疲れ様です。"+app.person+"です。\n"+
     (isEdit?"先の事前申請を修正しましたので、再度ご確認・ご承認をお願いいたします。\n\n":"下記の接待について事前申請いたします。社長・専務、ご承認のほどよろしくお願いいたします。\n\n")+
