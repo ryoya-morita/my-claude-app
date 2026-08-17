@@ -461,7 +461,17 @@ async function storeSet() {
   }
 }
 
-function migrate(){(db.applications||[]).forEach(a=>{if(a.dept==="役員用")a.dept="役員";});(db.reports||[]).forEach(r=>{if(r.dept==="役員用")r.dept="役員";if(!r.status)r.status="完了";});if(!db.systemUrl)db.systemUrl=DEFAULT_URL;}
+function migrate(){
+  (db.applications||[]).forEach(a=>{if(a.dept==="役員用")a.dept="役員";});
+  (db.reports||[]).forEach(r=>{if(r.dept==="役員用")r.dept="役員";if(!r.status)r.status="完了";});
+  
+  // ▼古いURLが残っていたら強制的に新しいURLに上書きする▼
+  if(db.systemUrl && db.systemUrl.includes("soho-settai.vercel.app")){ 
+    db.systemUrl=DEFAULT_URL; 
+  }
+  if(!db.systemUrl)db.systemUrl=DEFAULT_URL;
+}
+
 async function load(){
   let d=await storeGet(KEY);
   if(d)db=Object.assign({applications:[],reports:[],systemUrl:""},d);
