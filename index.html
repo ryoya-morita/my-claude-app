@@ -358,7 +358,6 @@ let cur=new Date(2026,7,1);
 let rform={items:[]};
 let decisionId=null,decisionMode=null,editingAppId=null,currentAppBudget=null;
 
-// ▼ ログイン中のユーザー情報保持用 ▼
 let currentUser = null; 
 
 const $=id=>document.getElementById(id);
@@ -375,37 +374,32 @@ const homeDept=name=>{const p=PEOPLE.find(x=>x.n===name);return p?p.d:"AI事業�
 const deptClass=d=>d==="役員"?"exec":d==="建築事業部"?"build":d==="AI事業部"?"ai":"other";
 const deptNote=d=>d==="役員"?"予算無制限":d==="建築事業部"?("月間 "+yen(BUILD_MONTHLY)+"/人"):d==="AI事業部"?"予算設定なし":"";
 
-// ▼ 権限判定ロジック ▼
 function getAuthLevel() {
-  if (!currentUser) return { level: 0 }; // 未ログイン
-  if (currentUser.e === "r.morita@so-ho.co.jp") return { level: 3, name: currentUser.n }; // システム管理者
-  if (currentUser.d === "役員") return { level: 2, name: currentUser.n }; // 全権限（役員）
-  return { level: 1, name: currentUser.n, dept: currentUser.d, role: currentUser.role || "" }; // 一部権限
+  if (!currentUser) return { level: 0 }; 
+  if (currentUser.e === "r.morita@so-ho.co.jp") return { level: 3, name: currentUser.n }; 
+  if (currentUser.d === "役員") return { level: 2, name: currentUser.n }; 
+  return { level: 1, name: currentUser.n, dept: currentUser.d, role: currentUser.role || "" }; 
 }
 
-// ユーザーが特定の社員のデータを閲覧できるか判定
 function canViewPerson(targetName) {
   const auth = getAuthLevel();
-  if (auth.level >= 2) return true; // 管理者・役員は全員分OK
-  if (auth.name === targetName) return true; // 自分自身は当然OK
+  if (auth.level >= 2) return true; 
+  if (auth.name === targetName) return true; 
   
   const target = PEOPLE.find(p => p.n === targetName);
   if (!target) return false;
   
-  // 建築事業部の部長(宮崎誠人)は、同部署の課長(浅野司)を見ることができるルール
   if (auth.dept === BUILD && auth.role === "部長" && target.d === BUILD && target.role === "課長") {
     return true;
   }
   return false;
 }
 
-// ユーザーが特定の「申請」または「報告」を閲覧できるか判定
 function canViewRecord(record) {
   const auth = getAuthLevel();
-  if (auth.level >= 2) return true; // 管理者・役員はすべてOK
-  if (record.person === auth.name) return true; // 自分が申請・報告したものはOK
+  if (auth.level >= 2) return true; 
+  if (record.person === auth.name) return true; 
   
-  // 建築部長は建築課長のレコードも見える
   const target = PEOPLE.find(p => p.n === record.person);
   if (auth.dept === BUILD && auth.role === "部長" && target && target.d === BUILD && target.role === "課長") {
     return true;
@@ -426,7 +420,6 @@ $("loginBtn").onclick = async () => {
     $("loginError").style.display = "block";
     $("loginBtn").textContent = "ログイン";
   } else {
-    // マスターから該当ユーザーをセット
     currentUser = PEOPLE.find(p => p.e.toLowerCase() === email.toLowerCase()) || { n: "その他", d: "AI事業部", e: email };
     $("loginScrim").classList.remove("show");
     load(); 
@@ -444,7 +437,6 @@ async function checkSession() {
 }
 checkSession();
 
-// ▼ データの読み書き処理 ▼
 async function storeGet(key) {
   try {
     const { data, error } = await supabaseClient.from('settai_db').select('data').eq('id', 1).single();
@@ -499,7 +491,6 @@ function monthApps(name,ym){return db.applications.filter(a=>a.person===name&&in
 function pendingBy(name,ym){return db.applications.filter(a=>a.person===name&&a.status==="承認待ち"&&inMonth(a,ym)).length;}
 function deptMonthUsed(dep,ym){return db.reports.filter(r=>r.dept===dep&&inMonth(r,ym)).reduce((s,r)=>s+shitaBudget(r),0);}
 
-// ▼ 閲覧権限を考慮した集計関数群 ▼
 function visibleAllMonthUsed(ym){
   return db.reports.filter(r=>inMonth(r,ym) && canViewRecord(r)).reduce((s,r)=>s+shitaBudget(r),0);
 }
@@ -552,7 +543,7 @@ function openFlow(stage){
   }
   else if(stage==="repcheck"){
     title="報告内容確認（確認待ち）";
-    lead=(auth.level >= 2) ? "【担当：社長：専務】報告内容を確認し、完了または差し戻しを行ってください。" : "【担当：社長・専務】あなたが報告した、確認待ちの案件です。";
+    lead=(auth.level >= 2) ? "【担当：社長・専務】報告内容を確認し、完了または差し戻しを行ってください。" : "【担当：社長・専務】あなたが報告した、確認待ちの案件です。";
     items=db.reports.filter(r=>(r.status||"完了")==="確認待ち" && canViewRecord(r));
     type="rep";
   }
@@ -601,31 +592,26 @@ function render(){
   const auth = getAuthLevel();
   const mNum=cur.getMonth()+1;
   
-  // ▼ 権限に基づいたサマリーの書き換え ▼
   const total=visibleAllMonthUsed(ym),sar=visibleAllMonthSareta(ym),allex=visibleAllMonthExempt(ym);
   let sd="";
   DEPTS.forEach(d=>{
-    // 一般ユーザーは別部署の金額は見えないようにする
     if(auth.level < 2 && auth.dept !== d) return; 
     sd+='<div class="sd"><div class="k"><span class="dot '+deptClass(d)+'"></span>'+d+'</div><div class="v num">'+yen(deptMonthUsed(d,ym))+'</div></div>';
   });
   
-  // 一般ユーザー向けに文言を「全員合計」から「閲覧可能合計」に変更
   const totalLabel = (auth.level >= 2) ? mNum+'月 全員の使用合計（自社負担）' : mNum+'月 あなたの閲覧可能合計（自社負担）';
   $("summary").innerHTML='<div class="sum-main"><div><div class="lab">'+totalLabel+'</div><div class="sum-sub">被接待 '+yen(sar)+' ｜ 対象外 '+yen(allex)+'</div></div><div class="big num">'+yen(total)+'</div></div><div class="sum-depts">'+sd+'</div>';
 
-  // ▼ 対象者の使用状況（見えない部署や役員は非表示） ▼
   const wrap=$("people");wrap.innerHTML="";
   DEPTS.forEach(dep=>{
     const mem = PEOPLE.filter(p=>p.d===dep && canViewPerson(p.n));
-    if(!mem.length) return; // 表示できる人がいなければ部署グループごと隠す
+    if(!mem.length) return; 
     
     let html='<div class="grp"><div class="grp-h"><span class="gn">'+dep+'</span><span class="gnote">'+deptNote(dep)+(auth.level>=2?' ・ 今月 '+yen(deptMonthUsed(dep,ym)):'')+'</span></div><div class="people">';
     mem.forEach(m=>html+=personCard(m.n,dep));
     html+='</div></div>';wrap.insertAdjacentHTML("beforeend",html);
   });
   
-  // その他(マスター外)のユーザーの制御
   const others=[...new Set([...db.reports,...db.applications].filter(x=>inMonth(x,ym)&&!PEOPLE.find(p=>p.n===x.person)).map(x=>x.person))].filter(n => canViewPerson(n));
   if(others.length){
     let html='<div class="grp"><div class="grp-h"><span class="gn">その他</span><span class="gnote">個別</span></div><div class="people">';
@@ -635,7 +621,6 @@ function render(){
   
   wrap.querySelectorAll("[data-person]").forEach(el=>el.onclick=()=>openPerson(el.dataset.person));
   
-  // ▼ ツールバーのボタン制限（一部権限者にはシステムURLやデータ書き出しを隠す） ▼
   if(auth.level < 2) {
     $("setUrl").classList.add("hide");
     $("exportXlsx").classList.add("hide");
@@ -727,13 +712,11 @@ function openRepDetail(r){
   $("repDetailBody").querySelectorAll(".rz").forEach(img=>img.onclick=()=>openLightbox(img.src));
   const act=$("repDetailActions");act.innerHTML="";
   
-  // 承認・差し戻し操作ができるのは役員以上（全権限）のみ
   if(st==="確認待ち" && auth.level >= 2){
     const ok=document.createElement("button");ok.className="btn-ok";ok.textContent="報告を確認（完了）";ok.onclick=()=>{closeAll();openDecision(r.id,"confirm");};act.appendChild(ok);
     const sb=document.createElement("button");sb.className="btn-ng";sb.textContent="報告を差し戻す";sb.onclick=()=>{closeAll();openDecision(r.id,"sendback");};act.appendChild(sb);
   }
   
-  // 削除ボタン
   const del=document.createElement("button");del.className="btn-del";del.textContent="この報告を削除";
   del.onclick=()=>{if(del.dataset.armed){removeReport(r.id);}else{del.dataset.armed="1";del.textContent="もう一度タップで削除";setTimeout(()=>{del.dataset.armed="";del.textContent="この報告を削除";},3000);}};
   act.appendChild(del);
@@ -755,7 +738,6 @@ function openAppDetail(id){
   
   if(a.status!=="報告済"){const e=document.createElement("button");e.className="btn-edit";e.textContent="編集";e.onclick=()=>openApplyEdit(a);act.appendChild(e);}
   
-  // 承認・却下ができるのは役員以上（全権限）のみ
   if(a.status==="承認待ち" && auth.level >= 2){
     const ok=document.createElement("button");ok.className="btn-ok";ok.textContent="承認する";ok.onclick=()=>{closeAll();openDecision(a.id,"approve");};act.appendChild(ok);
     const ng=document.createElement("button");ng.className="btn-ng";ng.textContent="却下する";ng.onclick=()=>{closeAll();openDecision(a.id,"reject");};act.appendChild(ng);
@@ -792,12 +774,11 @@ document.querySelectorAll("[data-dec]").forEach(b=>b.onclick=()=>{
   }
 });
 
-// ▼ プルダウンの選択肢も権限でフィルタリング ▼
 function fillPersonSelect(sel){
   sel.innerHTML="";
   const auth = getAuthLevel();
   PEOPLE.forEach(p=>{
-    if(!canViewPerson(p.n)) return; // 見る権限のない人は選択肢にも出さない
+    if(!canViewPerson(p.n)) return; 
     const o=document.createElement("option");o.value=p.n;o.textContent=p.n+"（"+p.d+"）";sel.appendChild(o);
   });
   if(auth.level >= 2) {
@@ -808,7 +789,7 @@ function fillDeptSelect(sel){
   sel.innerHTML="";
   const auth = getAuthLevel();
   DEPTS.forEach(d=>{
-    if(auth.level < 2 && auth.dept !== d) return; // 一般ユーザーは他部署を選択不可に
+    if(auth.level < 2 && auth.dept !== d) return; 
     const o=document.createElement("option");o.value=d;o.textContent=d;sel.appendChild(o);
   });
 }
@@ -819,7 +800,6 @@ $("openApply").onclick=()=>{
   fillPersonSelect($("a_person"));
   fillDeptSelect($("a_dept"));
   
-  // 初期値をログインユーザー自身にする
   if(currentUser) {
     $("a_person").value = currentUser.n;
     $("a_dept").value = currentUser.d;
