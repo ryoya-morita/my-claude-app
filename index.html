@@ -178,7 +178,12 @@
 </div>
 <div class="appbar"><div class="appbar-in">
   <div><div class="eyebrow">株式会社想歩</div><h1>接待交際費 申請・報告システム</h1></div>
-  <span class="tag">承認：宮崎嘉人・歌田修造</span>
+  <div style="text-align: right;">
+    <span class="tag">承認：宮崎嘉人・歌田修造</span>
+    <div style="margin-top: 8px;">
+      <button id="logoutBtn" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); color:#fff; border-radius:6px; padding:4px 10px; font-size:11px; cursor:pointer;">🚪 ログアウト</button>
+    </div>
+  </div>
 </div></div>
 
 <div class="wrap">
@@ -407,7 +412,7 @@ function canViewRecord(record) {
   return false;
 }
 
-// ▼ ログイン処理 ▼
+// ▼ ログイン・ログアウト処理 ▼
 $("loginBtn").onclick = async () => {
   $("loginBtn").textContent = "ログイン中...";
   const email = $("loginEmail").value.trim();
@@ -436,6 +441,18 @@ async function checkSession() {
   }
 }
 checkSession();
+
+// ログアウトボタンの動作
+$("logoutBtn").onclick = async () => {
+  if (confirm("ログアウトしてログイン画面に戻りますか？")) {
+    await supabaseClient.auth.signOut();
+    currentUser = null;
+    $("loginEmail").value = "";
+    $("loginPassword").value = "";
+    $("loginBtn").textContent = "ログイン";
+    $("loginScrim").classList.add("show");
+  }
+};
 
 async function storeGet(key) {
   try {
@@ -696,7 +713,7 @@ function openRepDetail(r){
   html+='<div style="font-size:11px;color:var(--muted);font-weight:700;margin:0 2px 7px;">申請とのリンク／整合性チェック</div><div class="checks">';
   repChecks(r).forEach(c=>{html+='<div class="chkrow '+c[0]+'"><span class="ci">'+(c[0]==="ok"?"✓":"⚠")+'</span><span class="ck">'+esc(c[1])+'</span><span class="cv">'+esc(c[2].replace(/^✓ |^⚠ /,""))+'</span></div>';});
   html+='</div>';
-  html+='<div class="preview">相手：'+esc(app?app.partner:"-")+(r.appId?'密':'\n事後理由：'+esc(r.reason))+'</div>';
+  html+='<div class="preview">相手：'+esc(app?app.partner:"-")+(r.appId?'':'\n事後理由：'+esc(r.reason))+'</div>';
   (r.items||[]).forEach((i,n)=>{
     html+='<div class="lineitem"><div style="display:flex;justify-content:space-between;"><b style="font-size:13px">'+(n+1)+'. '+esc((i.label?i.label+" ":"")+i.cat)+'</b><span class="num" style="font-weight:700">'+yen(i.amt)+'</span></div>'+
       '<div style="font-size:11.5px;color:var(--muted);margin-top:3px;">接待'+i.dir+(i.ppl?' ・ '+i.ppl+'名（'+yen(i.amt/i.ppl)+'/人）':'')+(i.exempt?' ・ 対象外':'')+(i.vendor?' ・ '+esc(i.vendor):'')+'</div>'+
