@@ -82,33 +82,6 @@
   .pc-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));}
   .pc-bar i.over{background:var(--red);}
   .pc-sub{font-size:10.5px;color:var(--muted);margin-top:6px;}
-  .row{display:flex;gap:11px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:11px 13px;margin-bottom:8px;box-shadow:var(--shadow-sm);cursor:pointer;transition:.14s;}
-  .row:hover{border-color:var(--line2);transform:translateY(-1px);box-shadow:var(--shadow);}
-  .row .mid{flex:1;min-width:0;}
-  .row .t{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .row .s{font-size:11px;color:var(--muted);margin-top:1px;}
-  .row .amt{font-size:14.5px;font-weight:700;text-align:right;white-space:nowrap;}
-  .row .amt small{display:block;font-size:10px;color:var(--indigo);font-weight:500;}
-  .row .chev{color:var(--muted);font-size:16px;flex:none;}
-  .row .rc,.row .warn{font-size:14px;flex:none;}
-  .row .warn{color:var(--amber);}
-  .pill{font-size:10px;border-radius:20px;padding:2px 9px;font-weight:700;white-space:nowrap;flex:none;}
-  .pill.exec{background:var(--brass-soft);color:var(--brass);}
-  .pill.build{background:var(--accent-soft);color:var(--accent2);}
-  .pill.ai{background:var(--indigo-soft);color:var(--indigo);}
-  .pill.other{background:var(--line);color:var(--ink2);}
-  .st{font-size:10px;border-radius:20px;padding:2px 9px;font-weight:700;white-space:nowrap;flex:none;}
-  .st.pending{background:var(--amber-soft);color:var(--amber);}
-  .st.approved{background:var(--blue-soft);color:var(--blue);}
-  .st.rejected{background:var(--red-soft);color:var(--red);}
-  .st.done{background:var(--green-soft);color:var(--green);}
-  .st.noapp{background:var(--red-soft);color:var(--red);}
-  .empty{text-align:center;color:var(--muted);font-size:13px;padding:22px;border:1px dashed var(--line2);border-radius:13px;background:rgba(255,255,255,.5);}
-  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
-  .toolbar button{font-size:12px;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:9px 13px;cursor:pointer;color:var(--ink);box-shadow:var(--shadow-sm);}
-  .toolbar button:hover{background:#fff;border-color:var(--line2);}
-  .toolbar button.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
-  .toolbar button.primary:hover{background:var(--accent2);}
   .scrim{position:fixed;inset:0;background:rgba(16,20,26,.5);display:none;align-items:flex-start;justify-content:center;padding:22px 12px;overflow:auto;z-index:50;backdrop-filter:blur(2px);}
   .scrim.show{display:flex;}
   .modal{background:var(--panel);border-radius:20px;max-width:540px;width:100%;padding:22px;box-shadow:0 24px 70px rgba(0,0,0,.3);}
@@ -119,18 +92,17 @@
   .fld label .req{color:var(--red);}
   .fld input,.fld select,.fld textarea{font-family:var(--sans);font-size:14px;padding:10px 11px;border:1px solid var(--line2);border-radius:10px;background:#fff;color:var(--ink);width:100%;}
   .fld textarea{resize:vertical;min-height:54px;}
-  .fld input:focus,.fld select:focus,.fld textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
-  .fld select:disabled{background:#F2F3F5;color:var(--muted);}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
   .segs{display:flex;gap:6px;flex-wrap:wrap;}
   .seg{flex:1;min-width:60px;text-align:center;padding:9px 4px;border:1px solid var(--line2);border-radius:10px;font-size:13px;cursor:pointer;background:#fff;color:var(--muted);font-weight:600;}
   .seg.active{background:var(--ink);color:#fff;border-color:var(--ink);}
   .modalbtns{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
   .modalbtns button,.modalbtns a{flex:1;min-width:120px;padding:12px;border:none;border-radius:12px;font-size:14.5px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;display:block;}
-  .btn-save{background:var(--accent);color:#fff;}.btn-save:hover{background:var(--accent2);}
+  .btn-save{background:var(--accent);color:#fff;}
   .btn-cancel{background:#fff;color:var(--muted);border:1px solid var(--line2)!important;}
   .btn-line{background:#06C755;color:#fff;}
-  .btn-ok{background:var(--green);color:#fff;}.btn-ng{background:#fff;color:var(--red);border:1px solid #E4BFB9!important;}
+  .btn-ok{background:var(--green);color:#fff;}
+  .btn-ng{background:#fff;color:var(--red);border:1px solid #E4BFB9!important;}
   .btn-edit{background:var(--blue);color:#fff;}
   .btn-del{background:#fff;color:var(--red);border:1px solid #E4BFB9!important;}
   .taxflag{font-size:12px;min-height:15px;font-weight:600;}
@@ -142,9 +114,6 @@
   .drop:hover{border-color:var(--accent);color:var(--accent);}
   .rcpt-preview{display:flex;gap:10px;align-items:center;margin-top:8px;}
   .rcpt-preview img{width:54px;height:54px;object-fit:cover;border-radius:9px;border:1px solid var(--line2);}
-  .ocr-status{font-size:12px;color:var(--blue);display:flex;align-items:center;gap:6px;margin-top:6px;}
-  .spin{width:12px;height:12px;border:2px solid #cdd;border-top-color:var(--blue);border-radius:50%;animation:sp .7s linear infinite;}
-  @keyframes sp{to{transform:rotate(360deg)}}
   .preview{background:#F5F7F9;border:1px solid var(--line);border-radius:13px;padding:13px 15px;font-size:12.5px;white-space:pre-wrap;line-height:1.75;margin:6px 0 12px;}
   .preview.green{background:var(--green-soft);border-color:#CFE6DB;}
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 20px;border-radius:26px;font-size:13px;box-shadow:var(--shadow);z-index:120;opacity:0;transition:.25s;}
@@ -157,7 +126,6 @@
   .chk{display:flex;align-items:center;gap:9px;font-size:13px;margin:5px 0 9px;cursor:pointer;font-weight:500;}
   .chk input{width:17px;height:17px;accent-color:var(--accent);}
   .additem{width:100%;padding:11px;border:1.5px dashed var(--line2);border-radius:12px;background:#fff;color:var(--ink2);font-size:14px;font-weight:700;cursor:pointer;margin-bottom:12px;}
-  .additem:hover{border-color:var(--accent);color:var(--accent);}
   .sumbar{display:flex;gap:16px;flex-wrap:wrap;background:#F5F7F9;border:1px solid var(--line);border-radius:11px;padding:11px 13px;font-size:14px;margin-bottom:12px;font-weight:700;}
   .sumbar b{color:var(--muted);font-weight:600;font-size:11px;display:block;letter-spacing:.02em;}
   .sumbar.blue{background:var(--blue-soft);border-color:#D2DEF1;}
@@ -190,7 +158,6 @@
 </head>
 <body>
 
-<!-- ▼ ログイン画面 ▼ -->
 <div class="scrim show" id="loginScrim" style="z-index: 999; background: var(--bg);">
   <div class="modal" style="max-width: 360px; text-align: center;">
     <h3>株式会社想歩</h3>
@@ -209,8 +176,6 @@
     <div id="loginError" style="color: var(--red); font-size: 12px; margin-top: 10px; display: none;"></div>
   </div>
 </div>
-<!-- ▲ ログイン画面ここまで ▲ -->
-
 <div class="appbar"><div class="appbar-in">
   <div><div class="eyebrow">株式会社想歩</div><h1>接待交際費 申請・報告システム</h1></div>
   <span class="tag">承認：宮崎嘉人・歌田修造</span>
@@ -237,13 +202,13 @@
     <div class="fstage" data-stage="rejected"><div class="ficon">↩️<span class="fbadge hide" id="fb-rejected">0</span></div><div class="flab">差し戻し</div><div class="fcount">要修正</div></div>
   </div>
 
-  <h2 class="sec">今月のサマリー</h2>
+  <h2 class="sec" id="sec-summary">今月のサマリー</h2>
   <div class="summary" id="summary"></div>
 
-  <h2 class="sec">対象者の使用状況（タップで個人詳細）</h2>
+  <h2 class="sec" id="sec-people">対象者の使用状況（タップで個人詳細）</h2>
   <div id="people"></div>
 
-  <div class="toolbar">
+  <div class="toolbar" id="main-toolbar">
     <button class="primary" id="exportXlsx">📊 Excel書き出し</button>
     <button id="exportCsv">CSV</button>
     <button id="setUrl">🔗 システムURL</button>
@@ -251,11 +216,10 @@
 
   <footer>
     データは全対象者で共有・蓄積されます。予算計上は「接待した（自社負担）」のみ。<br>
-    役員＝予算無制限／建築事業部＝月間¥80,000/人・年間¥560,000/人／AI事業部＝予算設定なし。通知は半自動。
+    役員＝予算無制限／建築事業部＝月間¥80,000/人・年間¥560,000/人／AI事業部＝予算設定なし。
   </footer>
 </div>
 
-<!-- 事前申請 -->
 <div class="scrim" id="applyScrim"><div class="modal">
   <h3 id="a_title">① 事前申請</h3>
   <div class="lead">接待の2日前までに登録してください。</div>
@@ -268,7 +232,7 @@
     <div class="fld"><label>接待予定日 <span class="req">*</span></label><input type="date" id="a_date"></div>
     <div class="fld"><label>予算（円）<span class="req">*</span></label><input type="number" id="a_budget" placeholder="20000" step="1000"></div>
   </div>
-  <div class="fld"><label>誰と（相手・会社名）<span class="req">*</span></label><input type="text" id="a_partner" placeholder="例）○○建設 田中様"></div>
+  <div class="fld"><label>誰と（相手・会社名） <span class="req">*</span></label><input type="text" id="a_partner" placeholder="例）○○建設 田中様"></div>
   <div class="grid2">
     <div class="fld"><label>どこで（店名・場所）</label><input type="text" id="a_place" placeholder="例）割烹〇〇"></div>
     <div class="fld"><label>何次会まで</label><select id="a_rounds"><option>1次会</option><option>2次会</option><option>3次会以上</option></select></div>
@@ -277,7 +241,6 @@
   <div class="modalbtns"><button class="btn-cancel" data-close>キャンセル</button><button class="btn-save" id="a_save">申請を登録</button></div>
 </div></div>
 
-<!-- 申請詳細 -->
 <div class="scrim" id="appDetailScrim"><div class="modal">
   <h3>事前申請の詳細</h3>
   <div class="lead">内容をご確認のうえ、操作してください。</div>
@@ -286,7 +249,6 @@
   <div class="modalbtns"><button class="btn-cancel" data-close>閉じる</button></div>
 </div></div>
 
-<!-- 決定 -->
 <div class="scrim" id="decisionScrim"><div class="modal">
   <h3 id="decisionTitle">承認する</h3>
   <div class="lead" id="decisionInfo"></div>
@@ -299,7 +261,6 @@
   <div class="modalbtns"><button class="btn-cancel" data-close>キャンセル</button></div>
 </div></div>
 
-<!-- 通知 -->
 <div class="scrim" id="notifyScrim"><div class="modal">
   <h3 id="notifyTitle">通知</h3>
   <div class="lead" id="notifyLead"></div>
@@ -308,7 +269,6 @@
   <div class="modalbtns"><button class="btn-cancel" data-close>閉じる</button></div>
 </div></div>
 
-<!-- 個人詳細 -->
 <div class="scrim" id="personScrim"><div class="modal">
   <h3 id="personName">個人詳細</h3>
   <div class="lead" id="personSub"></div>
@@ -316,7 +276,6 @@
   <div class="modalbtns"><button class="btn-cancel" data-close>閉じる</button></div>
 </div></div>
 
-<!-- 報告詳細 -->
 <div class="scrim" id="repDetailScrim"><div class="modal">
   <h3>報告の詳細</h3>
   <div class="lead" id="repDetailSub"></div>
@@ -325,7 +284,6 @@
   <div class="modalbtns"><button class="btn-cancel" data-close>閉じる</button></div>
 </div></div>
 
-<!-- 報告 -->
 <div class="scrim" id="reportScrim"><div class="modal">
   <h3>② 報告</h3>
   <div class="lead">承認済みの事前申請を選ぶと、申請内容と実績を見比べられます。</div>
@@ -334,7 +292,7 @@
     <div class="fld"><label>計上先（部署）<span class="req">*</span></label><select id="r_dept"></select></div>
   </div>
   <div class="fld hide" id="r_otherWrap"><label>氏名（その他）<span class="req">*</span></label><input type="text" id="r_other" placeholder="氏名を入力"></div>
-  <div class="fld"><label>事前申請（承認済みのみ表示）<span class="req">*</span></label><select id="r_appsel"><option value="">― 選択 ―</option></select></div>
+  <div class="fld"><label>事前申請（承認済みのみ表示） <span class="req">*</span></label><select id="r_appsel"><option value="">― 選択 ―</option></select></div>
   <div class="preview green hide" id="r_appinfo"></div>
   <div class="fld hide" id="r_noappWrap">
     <label>事前申請できなかった理由 <span class="req">*</span></label>
@@ -352,7 +310,6 @@
   <div class="modalbtns"><button class="btn-cancel" data-close>キャンセル</button><button class="btn-save" id="r_save">報告を登録</button></div>
 </div></div>
 
-<!-- フロー一覧 -->
 <div class="scrim" id="flowScrim"><div class="modal">
   <h3 id="flowTitle">一覧</h3>
   <div class="lead" id="flowLead"></div>
@@ -365,36 +322,44 @@
 
 <script>
 // ==========================================
-// ▼※※※ URLとキーの設定 ※※※▼
+// URLとキーの設定
 // ==========================================
 const SUPABASE_URL = "https://ivmwzvokqrhhuyfkgvit.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bXd6dm9rcXJoaHV5Zmtndml0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1OTI1OTMsImV4cCI6MjEwMjE2ODU5M30.MiXBfQ2s1Je5d9yPssCozCGp30ufLvkP8Li3Tt-CUTE";
-// ==========================================
-// ▲※※※ URLとキーの設定 ※※※▲
-// ==========================================
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const KEY="soho-settai-v12";
 const DEFAULT_URL="https://my-claude-app-orcin.vercel.app/";
-const PEOPLE=[{n:"宮崎嘉人",d:"役員"},{n:"歌田修造",d:"役員"},{n:"宮崎誠人",d:"建築事業部"},{n:"浅野司",d:"建築事業部"},{n:"森田諒也",d:"AI事業部"},{n:"金井翔",d:"AI事業部"}];
+
+// 社員マスター
+const PEOPLE=[
+  {n:"宮崎嘉人",d:"役員",e:"y.miyazaki@so-ho.co.jp"},
+  {n:"歌田修造",d:"役員",e:"s.utada@so-ho.co.jp"},
+  {n:"宮崎誠人",d:"建築事業部",e:"m.miyazaki@so-ho.co.jp",role:"部長"},
+  {n:"浅野司",d:"建築事業部",e:"t.asano@so-ho.co.jp",role:"課長"},
+  {n:"森田諒也",d:"AI事業部",e:"r.morita@so-ho.co.jp",role:"管理者"},
+  {n:"金井翔",d:"AI事業部",e:"k.kanai@so-ho.co.jp"}
+];
 const DEPTS=["役員","建築事業部","AI事業部"];
 
-// === 予算の設定 ===
 const BUILD="建築事業部";
 const BUILD_MONTHLY=80000;
 const BUILD_ANNUAL=560000;
-// ================
 
 const KUBUN=[
   {v:"会食1",cat:"会食",label:"1次会",t:"会食（1次会）"},{v:"会食2",cat:"会食",label:"2次会",t:"会食（2次会）"},
   {v:"会食3",cat:"会食",label:"3次会以上",t:"会食（3次会以上）"},{v:"交通",cat:"交通",label:"",t:"交通（タクシー等）"},
   {v:"手土産",cat:"手土産",label:"",t:"手土産"},{v:"ゴルフ",cat:"ゴルフ",label:"",t:"ゴルフ"},{v:"その他",cat:"その他",label:"",t:"その他"}
 ];
+
 let db={applications:[],reports:[],systemUrl:""};
 let cur=new Date(2026,7,1);
 let rform={items:[]};
 let decisionId=null,decisionMode=null,editingAppId=null,currentAppBudget=null;
+
+// ▼ ログイン中のユーザー情報保持用 ▼
+let currentUser = null; 
 
 const $=id=>document.getElementById(id);
 const yen=n=>"¥"+Math.round(n||0).toLocaleString("ja-JP");
@@ -410,10 +375,48 @@ const homeDept=name=>{const p=PEOPLE.find(x=>x.n===name);return p?p.d:"AI事業�
 const deptClass=d=>d==="役員"?"exec":d==="建築事業部"?"build":d==="AI事業部"?"ai":"other";
 const deptNote=d=>d==="役員"?"予算無制限":d==="建築事業部"?("月間 "+yen(BUILD_MONTHLY)+"/人"):d==="AI事業部"?"予算設定なし":"";
 
+// ▼ 権限判定ロジック ▼
+function getAuthLevel() {
+  if (!currentUser) return { level: 0 }; // 未ログイン
+  if (currentUser.e === "r.morita@so-ho.co.jp") return { level: 3, name: currentUser.n }; // システム管理者
+  if (currentUser.d === "役員") return { level: 2, name: currentUser.n }; // 全権限（役員）
+  return { level: 1, name: currentUser.n, dept: currentUser.d, role: currentUser.role || "" }; // 一部権限
+}
+
+// ユーザーが特定の社員のデータを閲覧できるか判定
+function canViewPerson(targetName) {
+  const auth = getAuthLevel();
+  if (auth.level >= 2) return true; // 管理者・役員は全員分OK
+  if (auth.name === targetName) return true; // 自分自身は当然OK
+  
+  const target = PEOPLE.find(p => p.n === targetName);
+  if (!target) return false;
+  
+  // 建築事業部の部長(宮崎誠人)は、同部署の課長(浅野司)を見ることができるルール
+  if (auth.dept === BUILD && auth.role === "部長" && target.d === BUILD && target.role === "課長") {
+    return true;
+  }
+  return false;
+}
+
+// ユーザーが特定の「申請」または「報告」を閲覧できるか判定
+function canViewRecord(record) {
+  const auth = getAuthLevel();
+  if (auth.level >= 2) return true; // 管理者・役員はすべてOK
+  if (record.person === auth.name) return true; // 自分が申請・報告したものはOK
+  
+  // 建築部長は建築課長のレコードも見える
+  const target = PEOPLE.find(p => p.n === record.person);
+  if (auth.dept === BUILD && auth.role === "部長" && target && target.d === BUILD && target.role === "課長") {
+    return true;
+  }
+  return false;
+}
+
 // ▼ ログイン処理 ▼
 $("loginBtn").onclick = async () => {
   $("loginBtn").textContent = "ログイン中...";
-  const email = $("loginEmail").value;
+  const email = $("loginEmail").value.trim();
   const password = $("loginPassword").value;
   
   const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
@@ -423,6 +426,8 @@ $("loginBtn").onclick = async () => {
     $("loginError").style.display = "block";
     $("loginBtn").textContent = "ログイン";
   } else {
+    // マスターから該当ユーザーをセット
+    currentUser = PEOPLE.find(p => p.e.toLowerCase() === email.toLowerCase()) || { n: "その他", d: "AI事業部", e: email };
     $("loginScrim").classList.remove("show");
     load(); 
   }
@@ -430,7 +435,9 @@ $("loginBtn").onclick = async () => {
 
 async function checkSession() {
   const { data: { session } } = await supabaseClient.auth.getSession();
-  if (session) {
+  if (session && session.user) {
+    const email = session.user.email;
+    currentUser = PEOPLE.find(p => p.e.toLowerCase() === email.toLowerCase()) || { n: "その他", d: "AI事業部", e: email };
     $("loginScrim").classList.remove("show");
     load();
   }
@@ -464,8 +471,6 @@ async function storeSet() {
 function migrate(){
   (db.applications||[]).forEach(a=>{if(a.dept==="役員用")a.dept="役員";});
   (db.reports||[]).forEach(r=>{if(r.dept==="役員用")r.dept="役員";if(!r.status)r.status="完了";});
-  
-  // ▼古いURLが残っていたら強制的に新しいURLに上書きする▼
   if(db.systemUrl && db.systemUrl.includes("soho-settai.vercel.app")){ 
     db.systemUrl=DEFAULT_URL; 
   }
@@ -493,9 +498,18 @@ function annualTotal(name,y){return db.reports.filter(r=>r.person===name&&inYear
 function monthApps(name,ym){return db.applications.filter(a=>a.person===name&&inMonth(a,ym));}
 function pendingBy(name,ym){return db.applications.filter(a=>a.person===name&&a.status==="承認待ち"&&inMonth(a,ym)).length;}
 function deptMonthUsed(dep,ym){return db.reports.filter(r=>r.dept===dep&&inMonth(r,ym)).reduce((s,r)=>s+shitaBudget(r),0);}
-function allMonthUsed(ym){return db.reports.filter(r=>inMonth(r,ym)).reduce((s,r)=>s+shitaBudget(r),0);}
-function allMonthSareta(ym){return db.reports.filter(r=>inMonth(r,ym)).reduce((s,r)=>s+saretaSum(r),0);}
-function allMonthExempt(ym){return db.reports.filter(r=>inMonth(r,ym)).reduce((s,r)=>s+exemptSum(r),0);}
+
+// ▼ 閲覧権限を考慮した集計関数群 ▼
+function visibleAllMonthUsed(ym){
+  return db.reports.filter(r=>inMonth(r,ym) && canViewRecord(r)).reduce((s,r)=>s+shitaBudget(r),0);
+}
+function visibleAllMonthSareta(ym){
+  return db.reports.filter(r=>inMonth(r,ym) && canViewRecord(r)).reduce((s,r)=>s+saretaSum(r),0);
+}
+function visibleAllMonthExempt(ym){
+  return db.reports.filter(r=>inMonth(r,ym) && canViewRecord(r)).reduce((s,r)=>s+exemptSum(r),0);
+}
+
 function urlLine(){return "\n▼申請システム："+(db.systemUrl||DEFAULT_URL);}
 
 function repChecks(r){
@@ -512,45 +526,45 @@ function repChecks(r){
 function repHasIssue(r){return repChecks(r).some(c=>c[0]==="warn");}
 
 function renderFlow(){
-  const cPend=db.applications.filter(a=>a.status==="承認待ち").length;
-  const cAppr=db.applications.filter(a=>a.status==="承認済").length;
-  const cCheck=db.reports.filter(r=>(r.status||"完了")==="確認待ち").length;
-  const cDone=db.reports.filter(r=>(r.status||"完了")==="完了").length;
-  const cRej=db.applications.filter(a=>a.status==="却下").length;
+  const cPend=db.applications.filter(a=>a.status==="承認待ち" && canViewRecord(a)).length;
+  const cAppr=db.applications.filter(a=>a.status==="承認済" && canViewRecord(a)).length;
+  const cCheck=db.reports.filter(r=>(r.status||"完了")==="確認待ち" && canViewRecord(r)).length;
+  const cDone=db.reports.filter(r=>(r.status||"完了")==="完了" && canViewRecord(r)).length;
+  const cRej=db.applications.filter(a=>a.status==="却下" && canViewRecord(a)).length;
   setBadge("fb-pending",cPend);setBadge("fb-approved",cAppr);setBadge("fb-repcheck",cCheck);setBadge("fb-rejected",cRej);
   $("fc-done").textContent=cDone+"件";
 }
 function setBadge(id,n){const el=$(id);if(n>0){el.textContent=n;el.classList.remove("hide");}else{el.classList.add("hide");}}
 document.querySelectorAll(".fstage").forEach(el=>el.onclick=()=>openFlow(el.dataset.stage));
 
-// ▼ 各フローを開いたときの処理 ▼
 function openFlow(stage){
   let title,lead,items=[],type="app";
+  const auth = getAuthLevel();
   if(stage==="pending"){
     title="申請中（承認待ち）";
-    lead="【担当：社長・専務】承認待ちの申請です。タップして承認または却下できます。";
-    items=db.applications.filter(a=>a.status==="承認待ち");
+    lead=(auth.level >= 2) ? "【担当：社長・専務】承認待ちの申請です。タップして承認または却下できます。" : "【担当：社長・専務】あなたが申請した、承認待ちの案件です。";
+    items=db.applications.filter(a=>a.status==="承認待ち" && canViewRecord(a));
   }
   else if(stage==="approved"){
     title="承認済み（報告待ち）";
     lead="【担当：全員】承認済みの申請です。タップして報告の作成や削除ができます。";
-    items=db.applications.filter(a=>a.status==="承認済");
+    items=db.applications.filter(a=>a.status==="承認済" && canViewRecord(a));
   }
   else if(stage==="repcheck"){
     title="報告内容確認（確認待ち）";
-    lead="【担当：社長・専務】報告内容を確認し、完了または差し戻しを行ってください。";
-    items=db.reports.filter(r=>(r.status||"完了")==="確認待ち");
+    lead=(auth.level >= 2) ? "【担当：社長：専務】報告内容を確認し、完了または差し戻しを行ってください。" : "【担当：社長・専務】あなたが報告した、確認待ちの案件です。";
+    items=db.reports.filter(r=>(r.status||"完了")==="確認待ち" && canViewRecord(r));
     type="rep";
   }
   else if(stage==="rejected"){
     title="差し戻し（却下）";
     lead="却下された申請です。タップで編集・再申請、または削除できます。";
-    items=db.applications.filter(a=>a.status==="却下");
+    items=db.applications.filter(a=>a.status==="却下" && canViewRecord(a));
   }
   else{
     title="完了済み";
     lead="すべて完了した記録です。タップして詳細の確認や報告の削除ができます。";
-    items=db.reports.filter(r=>(r.status||"完了")==="完了");
+    items=db.reports.filter(r=>(r.status||"完了")==="完了" && canViewRecord(r));
     type="rep";
   }
   
@@ -567,10 +581,9 @@ function openFlow(stage){
     if(type==="app"){
       const sc={"承認待ち":"pending","承認済":"approved","却下":"rejected","報告済":"done"}[x.status];
       div.innerHTML='<span class="st '+sc+'">'+x.status+'</span><span class="pill '+deptClass(x.dept)+'">'+esc(x.dept)+'</span><div class="mm"><div class="mt">'+esc(x.person+"｜"+x.partner)+'</div><div class="ms">'+fmtShort(x.date)+'</div></div><div class="ma num">'+yen(x.budget)+'</div>';
-      // 承認済みも詳細画面を開くように変更
       div.onclick=()=>{closeAll();openAppDetail(x.id);};
     }else{
-      const app=x.appId?db.applications.find(a=>a.id===x.appId):null;const issue=repHasIssue(x);
+      const app=x.appId?db.applications.find(a=>a.id===x.id):null;const issue=repHasIssue(x);
       const check=(x.status||"完了")==="確認待ち";
       div.innerHTML='<span class="st '+(check?"pending":"done")+'">'+(check?"確認待ち":"完了")+'</span><span class="pill '+deptClass(x.dept)+'">'+esc(x.dept||"-")+'</span><div class="mm"><div class="mt">'+esc(x.person+"｜"+(app?app.partner:(x.items[0]&&x.items[0].vendor)||"接待"))+'</div><div class="ms">'+fmtShort(x.date)+(issue?' ・ ⚠要確認':'')+'</div></div><div class="ma num">'+yen(shitaBudget(x))+'</div>';
       div.onclick=()=>{closeAll();openRepDetail(x);};
@@ -584,23 +597,54 @@ function render(){
   const ym=mkey(cur),y=cur.getFullYear();
   $("mLabel").textContent=y+"年"+(cur.getMonth()+1)+"月";
   renderFlow();
+  
+  const auth = getAuthLevel();
   const mNum=cur.getMonth()+1;
-  const total=allMonthUsed(ym),sar=allMonthSareta(ym),allex=allMonthExempt(ym);
-  let sd="";DEPTS.forEach(d=>{sd+='<div class="sd"><div class="k"><span class="dot '+deptClass(d)+'"></span>'+d+'</div><div class="v num">'+yen(deptMonthUsed(d,ym))+'</div></div>';});
-  $("summary").innerHTML='<div class="sum-main"><div><div class="lab">'+mNum+'月 全員の使用合計（自社負担）</div><div class="sum-sub">被接待 '+yen(sar)+' ｜ 対象外 '+yen(allex)+'</div></div><div class="big num">'+yen(total)+'</div></div><div class="sum-depts">'+sd+'</div>';
+  
+  // ▼ 権限に基づいたサマリーの書き換え ▼
+  const total=visibleAllMonthUsed(ym),sar=visibleAllMonthSareta(ym),allex=visibleAllMonthExempt(ym);
+  let sd="";
+  DEPTS.forEach(d=>{
+    // 一般ユーザーは別部署の金額は見えないようにする
+    if(auth.level < 2 && auth.dept !== d) return; 
+    sd+='<div class="sd"><div class="k"><span class="dot '+deptClass(d)+'"></span>'+d+'</div><div class="v num">'+yen(deptMonthUsed(d,ym))+'</div></div>';
+  });
+  
+  // 一般ユーザー向けに文言を「全員合計」から「閲覧可能合計」に変更
+  const totalLabel = (auth.level >= 2) ? mNum+'月 全員の使用合計（自社負担）' : mNum+'月 あなたの閲覧可能合計（自社負担）';
+  $("summary").innerHTML='<div class="sum-main"><div><div class="lab">'+totalLabel+'</div><div class="sum-sub">被接待 '+yen(sar)+' ｜ 対象外 '+yen(allex)+'</div></div><div class="big num">'+yen(total)+'</div></div><div class="sum-depts">'+sd+'</div>';
 
+  // ▼ 対象者の使用状況（見えない部署や役員は非表示） ▼
   const wrap=$("people");wrap.innerHTML="";
   DEPTS.forEach(dep=>{
-    const mem=PEOPLE.filter(p=>p.d===dep);
-    let html='<div class="grp"><div class="grp-h"><span class="gn">'+dep+'</span><span class="gnote">'+deptNote(dep)+' ・ 今月 '+yen(deptMonthUsed(dep,ym))+'</span></div><div class="people">';
+    const mem = PEOPLE.filter(p=>p.d===dep && canViewPerson(p.n));
+    if(!mem.length) return; // 表示できる人がいなければ部署グループごと隠す
+    
+    let html='<div class="grp"><div class="grp-h"><span class="gn">'+dep+'</span><span class="gnote">'+deptNote(dep)+(auth.level>=2?' ・ 今月 '+yen(deptMonthUsed(dep,ym)):'')+'</span></div><div class="people">';
     mem.forEach(m=>html+=personCard(m.n,dep));
     html+='</div></div>';wrap.insertAdjacentHTML("beforeend",html);
   });
-  const others=[...new Set([...db.reports,...db.applications].filter(x=>inMonth(x,ym)&&!PEOPLE.find(p=>p.n===x.person)).map(x=>x.person))];
-  if(others.length){let html='<div class="grp"><div class="grp-h"><span class="gn">その他</span><span class="gnote">個別</span></div><div class="people">';
+  
+  // その他(マスター外)のユーザーの制御
+  const others=[...new Set([...db.reports,...db.applications].filter(x=>inMonth(x,ym)&&!PEOPLE.find(p=>p.n===x.person)).map(x=>x.person))].filter(n => canViewPerson(n));
+  if(others.length){
+    let html='<div class="grp"><div class="grp-h"><span class="gn">その他</span><span class="gnote">個別</span></div><div class="people">';
     others.forEach(n=>html+=personCard(n,(db.reports.concat(db.applications).find(x=>x.person===n)||{}).dept||"その他"));
-    html+='</div></div>';wrap.insertAdjacentHTML("beforeend",html);}
+    html+='</div></div>';wrap.insertAdjacentHTML("beforeend",html);
+  }
+  
   wrap.querySelectorAll("[data-person]").forEach(el=>el.onclick=()=>openPerson(el.dataset.person));
+  
+  // ▼ ツールバーのボタン制限（一部権限者にはシステムURLやデータ書き出しを隠す） ▼
+  if(auth.level < 2) {
+    $("setUrl").classList.add("hide");
+    $("exportXlsx").classList.add("hide");
+    $("exportCsv").classList.add("hide");
+  } else {
+    $("setUrl").classList.remove("hide");
+    $("exportXlsx").classList.remove("hide");
+    $("exportCsv").classList.remove("hide");
+  }
 }
 
 function personCard(name,dept){
@@ -660,6 +704,7 @@ function openPerson(name){
 }
 
 function openRepDetail(r){
+  const auth = getAuthLevel();
   const app=r.appId?db.applications.find(a=>a.id===r.appId):null;
   $("repDetailSub").textContent=r.person+" ・ "+(r.dept||"-")+" ・ "+fmtFull(r.date);
   let html='';
@@ -682,12 +727,13 @@ function openRepDetail(r){
   $("repDetailBody").querySelectorAll(".rz").forEach(img=>img.onclick=()=>openLightbox(img.src));
   const act=$("repDetailActions");act.innerHTML="";
   
-  if(st==="確認待ち"){
+  // 承認・差し戻し操作ができるのは役員以上（全権限）のみ
+  if(st==="確認待ち" && auth.level >= 2){
     const ok=document.createElement("button");ok.className="btn-ok";ok.textContent="報告を確認（完了）";ok.onclick=()=>{closeAll();openDecision(r.id,"confirm");};act.appendChild(ok);
     const sb=document.createElement("button");sb.className="btn-ng";sb.textContent="報告を差し戻す";sb.onclick=()=>{closeAll();openDecision(r.id,"sendback");};act.appendChild(sb);
   }
   
-  // ▼ どこからでも削除可能 ▼
+  // 削除ボタン
   const del=document.createElement("button");del.className="btn-del";del.textContent="この報告を削除";
   del.onclick=()=>{if(del.dataset.armed){removeReport(r.id);}else{del.dataset.armed="1";del.textContent="もう一度タップで削除";setTimeout(()=>{del.dataset.armed="";del.textContent="この報告を削除";},3000);}};
   act.appendChild(del);
@@ -699,6 +745,7 @@ function openLightbox(src){$("lightboxImg").src=src;$("lightbox").classList.add(
 $("lightbox").onclick=()=>$("lightbox").classList.remove("show");
 
 function openAppDetail(id){
+  const auth = getAuthLevel();
   const a=db.applications.find(x=>x.id===id);if(!a)return;
   let t="申請者："+a.person+"（"+a.dept+"）\n接待予定日："+fmtFull(a.date)+"\n相手："+a.partner+"\n場所："+(a.place||"-")+"\n何次会："+a.rounds+"\n予算："+yen(a.budget)+"\n目的："+a.purpose+"\n\nステータス："+a.status;
   if(a.approvedBy)t+="（承認："+a.approvedBy+"）";if(a.status==="却下"&&a.decidedBy)t+="（却下："+a.decidedBy+"）";
@@ -708,17 +755,16 @@ function openAppDetail(id){
   
   if(a.status!=="報告済"){const e=document.createElement("button");e.className="btn-edit";e.textContent="編集";e.onclick=()=>openApplyEdit(a);act.appendChild(e);}
   
-  if(a.status==="承認待ち"){
+  // 承認・却下ができるのは役員以上（全権限）のみ
+  if(a.status==="承認待ち" && auth.level >= 2){
     const ok=document.createElement("button");ok.className="btn-ok";ok.textContent="承認する";ok.onclick=()=>{closeAll();openDecision(a.id,"approve");};act.appendChild(ok);
     const ng=document.createElement("button");ng.className="btn-ng";ng.textContent="却下する";ng.onclick=()=>{closeAll();openDecision(a.id,"reject");};act.appendChild(ng);
   }
   
-  // ▼ 承認済みの場合に報告作成ボタンを表示 ▼
   if(a.status==="承認済"){
     const repBtn=document.createElement("button");repBtn.className="btn-save";repBtn.textContent="この申請の報告を作成";repBtn.onclick=()=>{closeAll();openReportFor(a);};act.appendChild(repBtn);
   }
   
-  // ▼ どこからでも削除可能 ▼
   const del=document.createElement("button");del.className="btn-del";del.textContent="申請を削除";
   del.onclick=()=>{if(del.dataset.armed){removeApp(a.id);}else{del.dataset.armed="1";del.textContent="もう一度タップで削除";setTimeout(()=>{del.dataset.armed="";del.textContent="申請を削除";},3000);}};
   act.appendChild(del);
@@ -746,15 +792,60 @@ document.querySelectorAll("[data-dec]").forEach(b=>b.onclick=()=>{
   }
 });
 
-function fillPersonSelect(sel){sel.innerHTML="";PEOPLE.forEach(p=>{const o=document.createElement("option");o.value=p.n;o.textContent=p.n+"（"+p.d+"）";sel.appendChild(o);});const o=document.createElement("option");o.value="__other__";o.textContent="その他（氏名を入力）";sel.appendChild(o);}
-function fillDeptSelect(sel){sel.innerHTML="";DEPTS.forEach(d=>{const o=document.createElement("option");o.value=d;o.textContent=d;sel.appendChild(o);});}
+// ▼ プルダウンの選択肢も権限でフィルタリング ▼
+function fillPersonSelect(sel){
+  sel.innerHTML="";
+  const auth = getAuthLevel();
+  PEOPLE.forEach(p=>{
+    if(!canViewPerson(p.n)) return; // 見る権限のない人は選択肢にも出さない
+    const o=document.createElement("option");o.value=p.n;o.textContent=p.n+"（"+p.d+"）";sel.appendChild(o);
+  });
+  if(auth.level >= 2) {
+    const o=document.createElement("option");o.value="__other__";o.textContent="その他（氏名を入力）";sel.appendChild(o);
+  }
+}
+function fillDeptSelect(sel){
+  sel.innerHTML="";
+  const auth = getAuthLevel();
+  DEPTS.forEach(d=>{
+    if(auth.level < 2 && auth.dept !== d) return; // 一般ユーザーは他部署を選択不可に
+    const o=document.createElement("option");o.value=d;o.textContent=d;sel.appendChild(o);
+  });
+}
 
-$("openApply").onclick=()=>{editingAppId=null;$("a_title").textContent="① 事前申請";fillPersonSelect($("a_person"));fillDeptSelect($("a_dept"));$("a_person").value=PEOPLE[0].n;$("a_dept").value=PEOPLE[0].d;$("a_otherWrap").classList.add("hide");$("a_date").value=new Date().toISOString().slice(0,10);["a_budget","a_partner","a_place","a_purpose","a_other"].forEach(i=>$(i).value="");$("a_rounds").value="1次会";$("applyScrim").classList.add("show");};
-$("a_person").onchange=()=>{const v=$("a_person").value;const other=v==="__other__";$("a_otherWrap").classList.toggle("hide",!other);if(!other){const p=PEOPLE.find(x=>x.n===v);if(p)$("a_dept").value=p.d;}};
-function openApplyEdit(a){editingAppId=a.id;$("a_title").textContent="事前申請の編集";fillPersonSelect($("a_person"));fillDeptSelect($("a_dept"));
-  if(PEOPLE.find(x=>x.n===a.person)){$("a_person").value=a.person;$("a_otherWrap").classList.add("hide");}else{$("a_person").value="__other__";$("a_otherWrap").classList.remove("hide");$("a_other").value=a.person;}
+$("openApply").onclick=()=>{
+  editingAppId=null;
+  $("a_title").textContent="① 事前申請";
+  fillPersonSelect($("a_person"));
+  fillDeptSelect($("a_dept"));
+  
+  // 初期値をログインユーザー自身にする
+  if(currentUser) {
+    $("a_person").value = currentUser.n;
+    $("a_dept").value = currentUser.d;
+  }
+  $("a_otherWrap").classList.add("hide");
+  $("a_date").value=new Date().toISOString().slice(0,10);
+  ["a_budget","a_partner","a_place","a_purpose","a_other"].forEach(i=>$(i).value="");
+  $("a_rounds").value="1次会";
+  $("applyScrim").classList.add("show");
+};
+
+$("a_person").onchange=()=>{
+  const v=$("a_person").value;const other=v==="__other__";$("a_otherWrap").classList.toggle("hide",!other);
+  if(!other){const p=PEOPLE.find(x=>x.n===v);if(p)$("a_dept").value=p.d;}
+};
+
+function openApplyEdit(a){
+  editingAppId=a.id;$("a_title").textContent="事前申請の編集";
+  fillPersonSelect($("a_person"));
+  fillDeptSelect($("a_dept"));
+  if(PEOPLE.find(x=>x.n===a.person)){$("a_person").value=a.person;$("a_otherWrap").classList.add("hide");}
+  else{$("a_person").value="__other__";$("a_otherWrap").classList.remove("hide");$("a_other").value=a.person;}
   $("a_dept").value=a.dept||homeDept(a.person);$("a_date").value=a.date;$("a_budget").value=a.budget;$("a_partner").value=a.partner;$("a_place").value=a.place||"";$("a_rounds").value=a.rounds;$("a_purpose").value=a.purpose;
-  closeAll();$("applyScrim").classList.add("show");}
+  closeAll();$("applyScrim").classList.add("show");
+}
+
 $("a_save").onclick=()=>{
   let person=$("a_person").value;if(person==="__other__"){person=$("a_other").value.trim();if(!person){toast("氏名を入力してください");return;}}
   const dept=$("a_dept").value,date=$("a_date").value,budget=+$("a_budget").value||0,partner=$("a_partner").value.trim(),place=$("a_place").value.trim(),rounds=$("a_rounds").value,purpose=$("a_purpose").value.trim();
@@ -794,13 +885,24 @@ function copyText(t){if(navigator.clipboard&&navigator.clipboard.writeText){navi
 function fallbackCopy(t){const ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast("コピーしました");}catch(e){toast("コピーできませんでした");}document.body.removeChild(ta);}
 
 function openReportBase(){fillPersonSelect($("r_person"));fillDeptSelect($("r_dept"));$("r_otherWrap").classList.add("hide");resetReport();}
-$("openReport").onclick=()=>{openReportBase();$("r_person").value=PEOPLE[0].n;$("r_dept").value=PEOPLE[0].d;refreshAppSel();$("reportScrim").classList.add("show");};
+$("openReport").onclick=()=>{
+  openReportBase();
+  if(currentUser) {
+    $("r_person").value=currentUser.n;
+    $("r_dept").value=currentUser.d;
+  }
+  refreshAppSel();$("reportScrim").classList.add("show");
+};
 function openReportFor(app){openReportBase();
   if(PEOPLE.find(x=>x.n===app.person)){$("r_person").value=app.person;$("r_otherWrap").classList.add("hide");}
   else{$("r_person").value="__other__";$("r_otherWrap").classList.remove("hide");$("r_other").value=app.person;}
   $("r_dept").value=app.dept;refreshAppSel();$("r_appsel").value=app.id;updateAppInfo();recalc();$("reportScrim").classList.add("show");}
 function resolveRPerson(){const v=$("r_person").value;return v==="__other__"?$("r_other").value.trim():v;}
-$("r_person").onchange=()=>{const v=$("r_person").value;const other=v==="__other__";$("r_otherWrap").classList.toggle("hide",!other);if(!other){const p=PEOPLE.find(x=>x.n===v);if(p)$("r_dept").value=p.d;}refreshAppSel();};
+$("r_person").onchange=()=>{
+  const v=$("r_person").value;const other=v==="__other__";$("r_otherWrap").classList.toggle("hide",!other);
+  if(!other){const p=PEOPLE.find(x=>x.n===v);if(p)$("r_dept").value=p.d;}
+  refreshAppSel();
+};
 $("r_other").oninput=refreshAppSel;
 function refreshAppSel(){
   const p=resolveRPerson();const sel=$("r_appsel");sel.innerHTML='<option value="">― 選択 ―</option>';
@@ -887,7 +989,7 @@ $("setUrl").onclick=()=>{const v=prompt("申請システムのURL（LINE文に�
 
 function allRows(){const rows=[["日付","曜日","報告者","計上部署","区分","カテゴリ","方向","金額(円)","参加人数","1人あたり","予算区分","申請予算","予算超過理由","事前申請","承認者","事後理由","店名/相手","全体メモ","関係値の変化"]];
   db.reports.slice().sort((a,b)=>a.date<b.date?-1:1).forEach(r=>{const app=r.appId?db.applications.find(a=>a.id===r.appId):null;
-    (r.items||[]).forEach(i=>rows.push([r.date,dow(r.date),r.person,r.dept||"",i.label||i.cat,i.cat,"接待"+i.dir,i.amt,i.ppl||"",i.ppl?Math.round(i.amt/i.ppl):"",i.dir==="された"?"（被接待）":(i.exempt?"対象外":"対象"),r.appBudget!=null?r.appBudget:"",r.overReason||"",r.appId?"あり":"なし",app&&app.approvedBy?app.approvedBy:"",r.reason||"",i.vendor||(app?app.partner:"")||"",r.detail||"",r.rel||""]));});
+    (r.items||[]).forEach(i=>rows.push([r.date,dow(r.date),r.person,r.dept||\"\",i.label||i.cat,i.cat,\"接待\"+i.dir,i.amt,i.ppl||\"\",i.ppl?Math.round(i.amt/i.ppl):\"\",i.dir===\"された\"?\"（被接待）\":(i.exempt?\"対象外\":\"対象\"),r.appBudget!=null?r.appBudget:\"\",r.overReason||\"\",r.appId?\"あり\":\"なし\",app&&app.approvedBy?app.approvedBy:\"\",r.reason||\"\",i.vendor||(app?app.partner:\"\")||\"\",r.detail||\"\",r.rel||\"\"]));});
   return rows;}
 $("exportXlsx").onclick=()=>{if(!db.reports.length){toast("書き出す報告がありません");return;}const ws=XLSX.utils.aoa_to_sheet(allRows());const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"接待交際費履歴");XLSX.writeFile(wb,"接待交際費_全履歴.xlsx");};
 $("exportCsv").onclick=()=>{if(!db.reports.length){toast("書き出す報告がありません");return;}const csv="\uFEFF"+allRows().map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(",")).join("\r\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="接待交際費_全履歴.csv";a.click();};
