@@ -696,7 +696,7 @@ function openRepDetail(r){
   html+='<div style="font-size:11px;color:var(--muted);font-weight:700;margin:0 2px 7px;">申請とのリンク／整合性チェック</div><div class="checks">';
   repChecks(r).forEach(c=>{html+='<div class="chkrow '+c[0]+'"><span class="ci">'+(c[0]==="ok"?"✓":"⚠")+'</span><span class="ck">'+esc(c[1])+'</span><span class="cv">'+esc(c[2].replace(/^✓ |^⚠ /,""))+'</span></div>';});
   html+='</div>';
-  html+='<div class="preview">相手：'+esc(app?app.partner:"-")+(r.appId?'':'\n事後理由：'+esc(r.reason))+'</div>';
+  html+='<div class="preview">相手：'+esc(app?app.partner:"-")+(r.appId?'密':'\n事後理由：'+esc(r.reason))+'</div>';
   (r.items||[]).forEach((i,n)=>{
     html+='<div class="lineitem"><div style="display:flex;justify-content:space-between;"><b style="font-size:13px">'+(n+1)+'. '+esc((i.label?i.label+" ":"")+i.cat)+'</b><span class="num" style="font-weight:700">'+yen(i.amt)+'</span></div>'+
       '<div style="font-size:11.5px;color:var(--muted);margin-top:3px;">接待'+i.dir+(i.ppl?' ・ '+i.ppl+'名（'+yen(i.amt/i.ppl)+'/人）':'')+(i.exempt?' ・ 対象外':'')+(i.vendor?' ・ '+esc(i.vendor):'')+'</div>'+
@@ -892,7 +892,7 @@ function refreshAppSel(){
 $("r_appsel").onchange=()=>{updateAppInfo();recalc();};
 function updateAppInfo(){
   const v=$("r_appsel").value;$("r_noappWrap").classList.toggle("hide",v!=="__none__");const info=$("r_appinfo");const deptSel=$("r_dept");
-  if(v&&v!=="__none__"){const a=db.applications.find(x=>x.id===v);if(a){currentAppBudget=a.budget;deptSel.value=a.dept;deptSel.disabled=true;
+  if(v&&v!=="__none__"){const a=db.applications.find(a=>a.id===v);if(a){currentAppBudget=a.budget;deptSel.value=a.dept;deptSel.disabled=true;
     info.textContent="■ 申請内容（承認済み"+(a.approvedBy?"・"+a.approvedBy:"")+"）\n・接待予定日："+fmtFull(a.date)+"\n・相手："+a.partner+"\n・場所："+(a.place||"-")+"\n・何次会："+a.rounds+"\n・申請予算："+yen(a.budget)+"\n・目的："+a.purpose;info.classList.remove("hide");return;}}
   currentAppBudget=null;info.classList.add("hide");deptSel.disabled=false;
 }
@@ -967,10 +967,14 @@ $("prevM").onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()-1,1);rende
 $("nextM").onclick=()=>{cur=new Date(cur.getFullYear(),cur.getMonth()+1,1);render();};
 $("setUrl").onclick=()=>{const v=prompt("申請システムのURL（LINE文に添付。ホスティング後に設定）",db.systemUrl||"");if(v!==null){db.systemUrl=v.trim();storeSet();toast("URLを保存しました");}};
 
-function allRows(){const rows=[["日付","曜日","報告者","計上部署","区分","カテゴリ","方向","金額(円)","参加人数","1人あたり","予算区分","申請予算","予算超過理由","事前申請","承認者","事後理由","店名/相手","全体メモ","関係値の変化"]];
-  db.reports.slice().sort((a,b)=>a.date<b.date?-1:1).forEach(r=>{const app=r.appId?db.applications.find(a=>a.id===r.appId):null;
-    (r.items||[]).forEach(i=>rows.push([r.date,dow(r.date),r.person,r.dept||\"\",i.label||i.cat,i.cat,\"接待\"+i.dir,i.amt,i.ppl||\"\",i.ppl?Math.round(i.amt/i.ppl):\"\",i.dir===\"された\"?\"（被接待）\":(i.exempt?\"対象外\":\"対象\"),r.appBudget!=null?r.appBudget:\"\",r.overReason||\"\",r.appId?\"あり\":\"なし\",app&&app.approvedBy?app.approvedBy:\"\",r.reason||\"\",i.vendor||(app?app.partner:\"\")||\"\",r.detail||\"\",r.rel||\"\"]));});
-  return rows;}
+function allRows(){
+  const rows=[["日付","曜日","報告者","計上部署","区分","カテゴリ","方向","金額(円)","参加人数","1人あたり","予算区分","申請予算","予算超過理由","事前申請","承認者","事後理由","店名/相手","全体メモ","関係値の変化"]];
+  db.reports.slice().sort((a,b)=>a.date<b.date?-1:1).forEach(r=>{
+    const app=r.appId?db.applications.find(a=>a.id===r.appId):null;
+    (r.items||[]).forEach(i=>rows.push([r.date,dow(r.date),r.person,r.dept||"",i.label||i.cat,i.cat,"接待"+i.dir,i.amt,i.ppl||"",i.ppl?Math.round(i.amt/i.ppl):"",i.dir==="された"?"（被接待）":(i.exempt?"対象外":"対象"),r.appBudget!=null?r.appBudget:"",r.overReason||"",r.appId?"あり":"なし",app&&app.approvedBy?app.approvedBy:"",r.reason||"",i.vendor||(app?app.partner:"")||"",r.detail||"",r.rel||""]));
+  });
+  return rows;
+}
 $("exportXlsx").onclick=()=>{if(!db.reports.length){toast("書き出す報告がありません");return;}const ws=XLSX.utils.aoa_to_sheet(allRows());const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"接待交際費履歴");XLSX.writeFile(wb,"接待交際費_全履歴.xlsx");};
 $("exportCsv").onclick=()=>{if(!db.reports.length){toast("書き出す報告がありません");return;}const csv="\uFEFF"+allRows().map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(",")).join("\r\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="接待交際費_全履歴.csv";a.click();};
 
