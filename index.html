@@ -126,6 +126,7 @@
   .chk{display:flex;align-items:center;gap:9px;font-size:13px;margin:5px 0 9px;cursor:pointer;font-weight:500;}
   .chk input{width:17px;height:17px;accent-color:var(--accent);}
   .additem{width:100%;padding:11px;border:1.5px dashed var(--line2);border-radius:12px;background:#fff;color:var(--ink2);font-size:14px;font-weight:700;cursor:pointer;margin-bottom:12px;}
+  .additem:hover{border-color:var(--accent);color:var(--accent);}
   .sumbar{display:flex;gap:16px;flex-wrap:wrap;background:#F5F7F9;border:1px solid var(--line);border-radius:11px;padding:11px 13px;font-size:14px;margin-bottom:12px;font-weight:700;}
   .sumbar b{color:var(--muted);font-weight:600;font-size:11px;display:block;letter-spacing:.02em;}
   .sumbar.blue{background:var(--blue-soft);border-color:#D2DEF1;}
@@ -158,6 +159,7 @@
 </head>
 <body>
 
+<!-- ▼ ログイン画面 ▼ -->
 <div class="scrim show" id="loginScrim" style="z-index: 999; background: var(--bg);">
   <div class="modal" style="max-width: 360px; text-align: center;">
     <h3>株式会社想歩</h3>
@@ -176,6 +178,8 @@
     <div id="loginError" style="color: var(--red); font-size: 12px; margin-top: 10px; display: none;"></div>
   </div>
 </div>
+<!-- ▲ ログイン画面ここまで ▲ -->
+
 <div class="appbar"><div class="appbar-in">
   <div><div class="eyebrow">株式会社想歩</div><h1>接待交際費 申請・報告システム</h1></div>
   <div style="text-align: right;">
@@ -221,10 +225,11 @@
 
   <footer>
     データは全対象者で共有・蓄積されます。予算計上は「接待した（自社負担）」のみ。<br>
-    役員＝予算無制限／建築事業部＝月間¥80,000/人・年間¥560,000/人／AI事業部＝予算設定なし。
+    役員＝予算無制限／建築事業部＝部署全体で月間¥80,000・年間¥560,000／AI事業部＝予算設定なし。
   </footer>
 </div>
 
+<!-- 事前申請 -->
 <div class="scrim" id="applyScrim"><div class="modal">
   <h3 id="a_title">① 事前申請</h3>
   <div class="lead">接待の2日前までに登録してください。</div>
@@ -246,6 +251,7 @@
   <div class="modalbtns"><button class="btn-cancel" data-close>キャンセル</button><button class="btn-save" id="a_save">申請を登録</button></div>
 </div></div>
 
+<!-- 申請詳細 -->
 <div class="scrim" id="appDetailScrim"><div class="modal">
   <h3>事前申請の詳細</h3>
   <div class="lead">内容をご確認のうえ、操作してください。</div>
@@ -254,6 +260,7 @@
   <div class="modalbtns"><button class="btn-cancel" data-close>閉じる</button></div>
 </div></div>
 
+<!-- 決定 -->
 <div class="scrim" id="decisionScrim"><div class="modal">
   <h3 id="decisionTitle">承認する</h3>
   <div class="lead" id="decisionInfo"></div>
@@ -266,6 +273,7 @@
   <div class="modalbtns"><button class="btn-cancel" data-close>キャンセル</button></div>
 </div></div>
 
+<!-- 通知 -->
 <div class="scrim" id="notifyScrim"><div class="modal">
   <h3 id="notifyTitle">通知</h3>
   <div class="lead" id="notifyLead"></div>
@@ -274,6 +282,7 @@
   <div class="modalbtns"><button class="btn-cancel" data-close>閉じる</button></div>
 </div></div>
 
+<!-- 個人詳細 -->
 <div class="scrim" id="personScrim"><div class="modal">
   <h3 id="personName">個人詳細</h3>
   <div class="lead" id="personSub"></div>
@@ -281,6 +290,7 @@
   <div class="modalbtns"><button class="btn-cancel" data-close>閉じる</button></div>
 </div></div>
 
+<!-- 報告詳細 -->
 <div class="scrim" id="repDetailScrim"><div class="modal">
   <h3>報告の詳細</h3>
   <div class="lead" id="repDetailSub"></div>
@@ -289,6 +299,7 @@
   <div class="modalbtns"><button class="btn-cancel" data-close>閉じる</button></div>
 </div></div>
 
+<!-- 報告 -->
 <div class="scrim" id="reportScrim"><div class="modal">
   <h3>② 報告</h3>
   <div class="lead">承認済みの事前申請を選ぶと、申請内容と実績を見比べられます。</div>
@@ -315,6 +326,7 @@
   <div class="modalbtns"><button class="btn-cancel" data-close>キャンセル</button><button class="btn-save" id="r_save">報告を登録</button></div>
 </div></div>
 
+<!-- フロー一覧 -->
 <div class="scrim" id="flowScrim"><div class="modal">
   <h3 id="flowTitle">一覧</h3>
   <div class="lead" id="flowLead"></div>
@@ -326,9 +338,6 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ==========================================
-// URLとキーの設定
-// ==========================================
 const SUPABASE_URL = "https://ivmwzvokqrhhuyfkgvit.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2bXd6dm9rcXJoaHV5Zmtndml0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1OTI1OTMsImV4cCI6MjEwMjE2ODU5M30.MiXBfQ2s1Je5d9yPssCozCGp30ufLvkP8Li3Tt-CUTE";
 
@@ -337,20 +346,22 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const KEY="soho-settai-v12";
 const DEFAULT_URL="https://my-claude-app-orcin.vercel.app/";
 
-// 社員マスター
+// 社員マスター（児玉・三河を追加）
 const PEOPLE=[
   {n:"宮崎嘉人",d:"役員",e:"y.miyazaki@so-ho.co.jp"},
   {n:"歌田修造",d:"役員",e:"s.utada@so-ho.co.jp"},
   {n:"宮崎誠人",d:"建築事業部",e:"m.miyazaki@so-ho.co.jp",role:"部長"},
   {n:"浅野司",d:"建築事業部",e:"t.asano@so-ho.co.jp",role:"課長"},
+  {n:"児玉隆也",d:"建築事業部",e:"t.kodama@so-ho.co.jp",role:"課長"},
+  {n:"三河健太郎",d:"建築事業部",e:"k.mikawa@so-ho.co.jp",role:"課長"},
   {n:"森田諒也",d:"AI事業部",e:"r.morita@so-ho.co.jp",role:"管理者"},
   {n:"金井翔",d:"AI事業部",e:"k.kanai@so-ho.co.jp"}
 ];
 const DEPTS=["役員","建築事業部","AI事業部"];
 
 const BUILD="建築事業部";
-const BUILD_MONTHLY=80000;
-const BUILD_ANNUAL=560000;
+const BUILD_MONTHLY=80000; // 部署全体で月間8万
+const BUILD_ANNUAL=560000; // 部署全体で年間56万
 
 const KUBUN=[
   {v:"会食1",cat:"会食",label:"1次会",t:"会食（1次会）"},{v:"会食2",cat:"会食",label:"2次会",t:"会食（2次会）"},
@@ -377,7 +388,7 @@ const fmtFull=s=>s?(s+"（"+dow(s)+"）"):"-";
 const fmtShort=s=>s?((s).slice(5).replace("-","/")+"（"+dow(s)+"）"):"-";
 const homeDept=name=>{const p=PEOPLE.find(x=>x.n===name);return p?p.d:"AI事業部";};
 const deptClass=d=>d==="役員"?"exec":d==="建築事業部"?"build":d==="AI事業部"?"ai":"other";
-const deptNote=d=>d==="役員"?"予算無制限":d==="建築事業部"?("月間 "+yen(BUILD_MONTHLY)+"/人"):d==="AI事業部"?"予算設定なし":"";
+const deptNote=d=>d==="役員"?"予算無制限":d==="建築事業部"?("全体月間 "+yen(BUILD_MONTHLY)):d==="AI事業部"?"予算設定なし":"";
 
 function getAuthLevel() {
   if (!currentUser) return { level: 0 }; 
@@ -394,6 +405,7 @@ function canViewPerson(targetName) {
   const target = PEOPLE.find(p => p.n === targetName);
   if (!target) return false;
   
+  // 建築事業部の部長は、建築事業部の課長（浅野、児玉、三河）をすべて閲覧可能
   if (auth.dept === BUILD && auth.role === "部長" && target.d === BUILD && target.role === "課長") {
     return true;
   }
@@ -412,7 +424,7 @@ function canViewRecord(record) {
   return false;
 }
 
-// ▼ ログイン・ログアウト処理 ▼
+// ログイン・ログアウト処理
 $("loginBtn").onclick = async () => {
   $("loginBtn").textContent = "ログイン中...";
   const email = $("loginEmail").value.trim();
@@ -442,7 +454,6 @@ async function checkSession() {
 }
 checkSession();
 
-// ログアウトボタンの動作
 $("logoutBtn").onclick = async () => {
   if (confirm("ログアウトしてログイン画面に戻りますか？")) {
     await supabaseClient.auth.signOut();
@@ -498,15 +509,18 @@ const saretaSum=r=>sumItems(r,i=>i.dir==="された");
 const exemptSum=r=>sumItems(r,i=>i.dir==="した"&&i.exempt);
 const inMonth=(x,ym)=>(x.date||"").slice(0,7)===ym;
 const inYear=(x,y)=>(x.date||"").slice(0,4)===String(y);
+
 function reportsOf(name,ym){return db.reports.filter(r=>r.person===name&&inMonth(r,ym));}
 function monthUsed(name,ym){return reportsOf(name,ym).reduce((s,r)=>s+shitaBudget(r),0);}
 function monthSareta(name,ym){return reportsOf(name,ym).reduce((s,r)=>s+saretaSum(r),0);}
 function monthExempt(name,ym){return reportsOf(name,ym).reduce((s,r)=>s+exemptSum(r),0);}
-function annualBuild(name,y){return db.reports.filter(r=>r.person===name&&r.dept===BUILD&&inYear(r,y)).reduce((s,r)=>s+shitaBudget(r),0);}
 function annualTotal(name,y){return db.reports.filter(r=>r.person===name&&inYear(r,y)).reduce((s,r)=>s+shitaBudget(r),0);}
 function monthApps(name,ym){return db.applications.filter(a=>a.person===name&&inMonth(a,ym));}
 function pendingBy(name,ym){return db.applications.filter(a=>a.person===name&&a.status==="承認待ち"&&inMonth(a,ym)).length;}
+
+// 建築事業部全体の集計（連動用）
 function deptMonthUsed(dep,ym){return db.reports.filter(r=>r.dept===dep&&inMonth(r,ym)).reduce((s,r)=>s+shitaBudget(r),0);}
+function deptAnnualUsed(dep,y){return db.reports.filter(r=>r.dept===dep&&inYear(r,y)).reduce((s,r)=>s+shitaBudget(r),0);}
 
 function visibleAllMonthUsed(ym){
   return db.reports.filter(r=>inMonth(r,ym) && canViewRecord(r)).reduce((s,r)=>s+shitaBudget(r),0);
@@ -616,7 +630,7 @@ function render(){
     sd+='<div class="sd"><div class="k"><span class="dot '+deptClass(d)+'"></span>'+d+'</div><div class="v num">'+yen(deptMonthUsed(d,ym))+'</div></div>';
   });
   
-  const totalLabel = (auth.level >= 2) ? mNum+'月 全員の使用合計（自社負担）' : mNum+'月 あなたの閲覧可能合計（自社負担）';
+  const totalLabel = (auth.level >= 2) ? mNum+'月 全員の使用合計（自社負担）' : mNum+'月 閲覧可能合計（自社負担）';
   $("summary").innerHTML='<div class="sum-main"><div><div class="lab">'+totalLabel+'</div><div class="sum-sub">被接待 '+yen(sar)+' ｜ 対象外 '+yen(allex)+'</div></div><div class="big num">'+yen(total)+'</div></div><div class="sum-depts">'+sd+'</div>';
 
   const wrap=$("people");wrap.innerHTML="";
@@ -650,21 +664,31 @@ function render(){
 }
 
 function personCard(name,dept){
-  const ym=mkey(cur),y=cur.getFullYear();const used=monthUsed(name,ym);const pend=pendingBy(name,ym);
+  const ym=mkey(cur),y=cur.getFullYear();
+  const used=monthUsed(name,ym);
+  const pend=pendingBy(name,ym);
   let extra="";
+  
   if(dept===BUILD){
-    const mBal=BUILD_MONTHLY-used;const mPct=Math.min(100,used/BUILD_MONTHLY*100);
-    const an=annualBuild(name,y);const bal=BUILD_ANNUAL-an;const pct=Math.min(100,an/BUILD_ANNUAL*100);
-    extra='<div class="pc-bar"><i class="'+(used>BUILD_MONTHLY?'over':'')+'" style="width:'+(used>BUILD_MONTHLY?100:mPct)+'%"></i></div>'+
-      '<div class="pc-sub">月間 <span class="num">'+yen(used)+'</span> / <span class="num">'+yen(BUILD_MONTHLY)+'</span> 残 <span class="num">'+yenS(mBal)+'</span></div>'+
-      '<div class="pc-bar" style="margin-top:8px;"><i class="'+(an>BUILD_ANNUAL?'over':'')+'" style="width:'+(an>BUILD_ANNUAL?100:pct)+'%; background:linear-gradient(90deg,var(--muted),#9AA6B0);"></i></div>'+
-      '<div class="pc-sub">年間 <span class="num">'+yen(an)+'</span> / <span class="num">'+yen(BUILD_ANNUAL)+'</span> 残 <span class="num">'+yenS(bal)+'</span></div>';
+    // 建築事業部は全体で連動
+    const bMonthUsed = deptMonthUsed(BUILD, ym);
+    const bMonthBal = BUILD_MONTHLY - bMonthUsed;
+    const bMonthPct = Math.min(100, bMonthUsed / BUILD_MONTHLY * 100);
+    
+    const bAnnualUsed = deptAnnualUsed(BUILD, y);
+    const bAnnualBal = BUILD_ANNUAL - bAnnualUsed;
+    const bAnnualPct = Math.min(100, bAnnualUsed / BUILD_ANNUAL * 100);
+
+    extra='<div class="pc-bar"><i class="'+(bMonthUsed>BUILD_MONTHLY?'over':'')+'" style="width:'+(bMonthUsed>BUILD_MONTHLY?100:bMonthPct)+'%"></i></div>'+
+      '<div class="pc-sub">部署月間 <span class="num">'+yen(bMonthUsed)+'</span> / <span class="num">'+yen(BUILD_MONTHLY)+'</span> 残 <span class="num">'+yenS(bMonthBal)+'</span></div>'+
+      '<div class="pc-bar" style="margin-top:8px;"><i class="'+(bAnnualUsed>BUILD_ANNUAL?'over':'')+'" style="width:'+(bAnnualUsed>BUILD_ANNUAL?100:bAnnualPct)+'%; background:linear-gradient(90deg,var(--muted),#9AA6B0);"></i></div>'+
+      '<div class="pc-sub">部署年間 <span class="num">'+yen(bAnnualUsed)+'</span> / <span class="num">'+yen(BUILD_ANNUAL)+'</span> 残 <span class="num">'+yenS(bAnnualBal)+'</span></div>';
   }else{
     const an=annualTotal(name,y);
     extra='<div class="pc-sub">予算：'+(dept==="役員"?"無制限":"設定なし")+' ・ 年間 <span class="num">'+yen(an)+'</span>'+(pend?' ・ 承認待ち '+pend:'')+'</div>';
   }
   return '<div class="pcard" data-person="'+esc(name)+'"><div class="pc-top"><span class="pc-name">'+esc(name)+'</span><span class="chev">›</span></div>'+
-    '<div class="pc-amt"><span class="num">'+yen(used)+'</span><span class="pc-cap">今月の自社負担</span></div>'+extra+'</div>';
+    '<div class="pc-amt"><span class="num">'+yen(used)+'</span><span class="pc-cap">個人の今月自社負担</span></div>'+extra+'</div>';
 }
 
 function openPerson(name){
@@ -674,21 +698,27 @@ function openPerson(name){
   
   let html='<div class="stats" style="grid-template-columns:repeat(2,1fr);">'+
     '<div class="stat"><div class="k">報告件数</div><div class="v num">'+reps.length+'<span style="font-size:12px"> 件</span></div></div>'+
-    '<div class="stat"><div class="k">使用額（自社負担）</div><div class="v num">'+yen(used)+'</div></div>'+
+    '<div class="stat"><div class="k">個人使用額（自社負担）</div><div class="v num">'+yen(used)+'</div></div>'+
     '<div class="stat"><div class="k">被接待（相手負担）</div><div class="v num">'+yen(sa)+'</div></div>'+
     '<div class="stat"><div class="k">対象外（自社負担）</div><div class="v num">'+yen(ex)+'</div></div>'+
-    '<div class="stat" style="grid-column: 1 / -1;"><div class="k">年間トータル使用額（自社負担）</div><div class="v num">'+yen(annualTotal(name,y))+'</div></div></div>';
+    '<div class="stat" style="grid-column: 1 / -1;"><div class="k">個人年間トータル使用額（自社負担）</div><div class="v num">'+yen(annualTotal(name,y))+'</div></div></div>';
   
   if(dept===BUILD){
-    const mBal=BUILD_MONTHLY-used;const mPct=Math.min(100,used/BUILD_MONTHLY*100);
-    const an=annualBuild(name,y);const bal=BUILD_ANNUAL-an;const pct=Math.min(100,an/BUILD_ANNUAL*100);
+    const bMonthUsed = deptMonthUsed(BUILD, ym);
+    const bMonthBal = BUILD_MONTHLY - bMonthUsed;
+    const bMonthPct = Math.min(100, bMonthUsed / BUILD_MONTHLY * 100);
+    
+    const bAnnualUsed = deptAnnualUsed(BUILD, y);
+    const bAnnualBal = BUILD_ANNUAL - bAnnualUsed;
+    const bAnnualPct = Math.min(100, bAnnualUsed / BUILD_ANNUAL * 100);
+
     html+='<div style="background:#F5F7F9;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:14px;">'+
-      '<div style="font-size:11px;color:var(--muted);font-weight:600;">建築事業部 月間予算</div>'+
-      '<div style="display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 8px;"><span class="num" style="font-size:19px;font-weight:700">'+yen(used)+' <span style="font-size:12px;color:var(--muted)">/ '+yen(BUILD_MONTHLY)+'</span></span><span class="num" style="font-size:12px;color:var(--muted)">残 '+yenS(mBal)+'</span></div>'+
-      '<div class="pc-bar"><i class="'+(used>BUILD_MONTHLY?'over':'')+'" style="width:'+(used>BUILD_MONTHLY?100:mPct)+'%"></i></div>'+
-      '<div style="font-size:11px;color:var(--muted);font-weight:600;margin-top:16px;">建築事業部 年間予算</div>'+
-      '<div style="display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 8px;"><span class="num" style="font-size:19px;font-weight:700">'+yen(an)+' <span style="font-size:12px;color:var(--muted)">/ '+yen(BUILD_ANNUAL)+'</span></span><span class="num" style="font-size:12px;color:var(--muted)">残 '+yenS(bal)+'</span></div>'+
-      '<div class="pc-bar"><i class="'+(an>BUILD_ANNUAL?'over':'')+'" style="width:'+(an>BUILD_ANNUAL?100:pct)+'%; background:linear-gradient(90deg,var(--muted),#9AA6B0);"></i></div>'+
+      '<div style="font-size:11px;color:var(--muted);font-weight:600;">建築事業部 全体月間予算（連動）</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 8px;"><span class="num" style="font-size:19px;font-weight:700">'+yen(bMonthUsed)+' <span style="font-size:12px;color:var(--muted)">/ '+yen(BUILD_MONTHLY)+'</span></span><span class="num" style="font-size:12px;color:var(--muted)">残 '+yenS(bMonthBal)+'</span></div>'+
+      '<div class="pc-bar"><i class="'+(bMonthUsed>BUILD_MONTHLY?'over':'')+'" style="width:'+(bMonthUsed>BUILD_MONTHLY?100:bMonthPct)+'%"></i></div>'+
+      '<div style="font-size:11px;color:var(--muted);font-weight:600;margin-top:16px;">建築事業部 全体年間予算（連動）</div>'+
+      '<div style="display:flex;justify-content:space-between;align-items:baseline;margin:4px 0 8px;"><span class="num" style="font-size:19px;font-weight:700">'+yen(bAnnualUsed)+' <span style="font-size:12px;color:var(--muted)">/ '+yen(BUILD_ANNUAL)+'</span></span><span class="num" style="font-size:12px;color:var(--muted)">残 '+yenS(bAnnualBal)+'</span></div>'+
+      '<div class="pc-bar"><i class="'+(bAnnualUsed>BUILD_ANNUAL?'over':'')+'" style="width:'+(bAnnualUsed>BUILD_ANNUAL?100:bAnnualPct)+'%; background:linear-gradient(90deg,var(--muted),#9AA6B0);"></i></div>'+
       '</div>';
   }
   
@@ -856,9 +886,15 @@ function showNotify(title,lead,text){$("notifyTitle").textContent=title;$("notif
 function budgetBlock(app){
   const ym=(app.date||"").slice(0,7),y=+ym.slice(0,4),mNum=+ym.slice(5,7);
   if(app.dept===BUILD){
-    const an=annualBuild(app.person,y);const remain=BUILD_ANNUAL-an;const proj=remain-app.budget;
-    const mUsed=monthUsed(app.person,ym);const mRemain=BUILD_MONTHLY-mUsed;const mProj=mRemain-app.budget;
-    return "■ 予算状況（"+app.person+"／建築事業部）\n・月間予算："+yen(BUILD_MONTHLY)+"（今月残："+yenS(mRemain)+" → 使用後："+yenS(mProj)+"）\n・年間予算："+yen(BUILD_ANNUAL)+"（年間残："+yenS(remain)+" → 使用後："+yenS(proj)+"）";
+    const bMonthUsed = deptMonthUsed(BUILD, ym);
+    const bMonthRemain = BUILD_MONTHLY - bMonthUsed;
+    const bMonthProj = bMonthRemain - app.budget;
+
+    const bAnnualUsed = deptAnnualUsed(BUILD, y);
+    const bAnnualRemain = BUILD_ANNUAL - bAnnualUsed;
+    const bAnnualProj = bAnnualRemain - app.budget;
+
+    return "■ 予算状況（建築事業部・全体連動）\n・全体月間予算："+yen(BUILD_MONTHLY)+"（今月残："+yenS(bMonthRemain)+" → 本件後："+yenS(bMonthProj)+"）\n・全体年間予算："+yen(BUILD_ANNUAL)+"（年間残："+yenS(bAnnualRemain)+" → 本件後："+yenS(bAnnualProj)+"）";
   }
   return "■ 計上先："+app.dept+"（"+(app.dept==="役員"?"予算無制限":"予算設定なし")+"）\n・"+mNum+"月の使用額："+yen(monthUsed(app.person,ym));
 }
